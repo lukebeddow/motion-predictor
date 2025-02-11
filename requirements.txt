@@ -7,3 +7,7 @@ mujoco_mjx
 brax
 matplotlib
 mediapy
+torch
+numpy 
+gymnasium
+mujoco_playground

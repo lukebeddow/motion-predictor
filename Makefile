@@ -1,6 +1,6 @@
 # Variables
-IMAGE_NAME = mjx_exp
-CONTAINER_NAME = mjx_container
+IMAGE_NAME = motion-predictor
+CONTAINER_NAME = motion-predictor
 WORKDIR = $(PWD)/src
 PORT = 8888
 GPU_FLAG = --gpus device=0
