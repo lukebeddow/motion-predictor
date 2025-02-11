@@ -19,7 +19,7 @@ class GymHandler():
     self.device = "cpu"
 
   def step(self, action):
-    return self.env.step(action.to(self.device))
+    return self.env.step(action.to(self.device).numpy())
   
   def reset(self, rngseed=None):
     obs, info = self.env.reset(seed=rngseed)

@@ -7,10 +7,8 @@ import logging
 import wandb
 
 from env.env import GymHandler
-from agents import policy_gradient as pg
-from trainers import ppo_trainer
-
-from omegaconf import DictConfig, OmegaConf
+from trainer import Trainer, ppo_trainer
+from agents.policy_gradient import Agent_PPO, MLPActorCriticPG, pg
 
 def print_time_taken():
 
