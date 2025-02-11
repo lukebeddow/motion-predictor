@@ -30,5 +30,5 @@ trainer: # trainer params
   use_curriculum: False
   rngseed: 123
   log_level: 1
-  plot: true
-  render: true
+  plot: false
+  render: false

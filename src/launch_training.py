@@ -7,10 +7,14 @@ import logging
 import wandb
 
 from env.env import GymHandler
-from trainer import Trainer, ppo_trainer
-from agents.policy_gradient import Agent_PPO, MLPActorCriticPG, pg
+from trainers import base_trainer
+import agents.policy_gradient as pg
 
-def print_time_taken():
+import hydra 
+from omegaconf import DictConfig, OmegaConf
+
+
+def print_time_taken(starting_time):
 
   """
   Print the time taken since the training started.
@@ -24,13 +28,14 @@ def print_time_taken():
   h = divmod(d[1], 3600)
   m = divmod(h[1], 60)
   s = m[1]
-  print("\nStarted at:", starting_time.strftime(datestr))
-  print("Finished at:", datetime.now().strftime(datestr))
+  print("\nStarted at:", starting_time.strftime("%Y-%m-%d_%H-%M"))
+  print("Finished at:", datetime.now().strftime("%Y-%m-%d_%H-%M"))
   print(f"Time taken was {d[0]:.0f} days {h[0]:.0f} hrs {m[0]:.0f} mins {s:.0f} secs\n")
 
 @hydra.main(config_path="/workspace/configs", config_name="config", version_base=None)
 def main(cfg: DictConfig):
 
+  starting_time = datetime.now()
   cfg_container = OmegaConf.to_container(cfg, resolve=True, throw_on_missing=True)
   with wandb.init(config=cfg_container, **cfg_container['wandb']):
 
@@ -49,10 +54,10 @@ def main(cfg: DictConfig):
         agent.init(network)
 
         # create the trainer
-        trainer = ppo_trainer.Trainer(agent, env, **cfg.model.trainer)
+        trainer = base_trainer.Trainer(agent, env, **cfg.model.trainer)
         # run the training
         trainer.train()
-        print_time_taken()
+        print_time_taken(starting_time)
 
     else:
       raise RuntimeError(f"launch_trainig.py error: program name given = {cfg.model}, not recognised")
@@ -66,7 +71,7 @@ def main(cfg: DictConfig):
     # starting_time = datetime.now()
 
     # # how to format dates/times
-    # datestr = "%Y-%m-%d_%H-%M"
+    # datestr = 
 
     # # define arguments and parse them
     # parser = argparse.ArgumentParser()

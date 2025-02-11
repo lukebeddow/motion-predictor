@@ -7,6 +7,7 @@ import time
 import random
 from datetime import datetime
 import functools
+import wandb
 
 from modelsaver import ModelSaver
 
@@ -102,7 +103,12 @@ class TrackTraining:
     self.train_data["episodes"] = np.append(self.train_data["episodes"], self.train_data["episodes_done"])
 
     # update average information
-    self.calc_static_average()
+    new_data = self.calc_static_average()
+
+    if new_data:
+      
+      wandb.log({'reward':self.train_data['reward'][-1]})
+    
 
   def log_test(self, log_dict):
     """
@@ -151,6 +157,8 @@ class TrackTraining:
           self.train_data_avg[key] = np.append(self.train_data_avg[key], new_average)
 
       self.train_data_avg["averages_done"] += num_new_averages
+
+    return bool(num_new_averages)
 
   def plot_matplotlib(self, xdata, ydata, ylabel, title, axs, label=None):
     """
@@ -273,22 +281,30 @@ class Trainer:
     save_freq: int = 200
     use_curriculum: bool = False
 
-  def __init__(self, agent, env, rngseed=None, device="cpu", log_level=1, plot=False,
+  def __init__(self, agent, env, num_episodes:int,
+               test_freq:int, save_freq:int, use_curriculum:bool,
+               rngseed=None, device="cpu", log_level=1, plot=False,
                render=False, group_name="default_%Y-%m-%d", run_name="default_run_%H-%M",
-               save=True, savedir="models", episode_log_rate=250, strict_seed=False):
+               save=True, savedir="models", episode_log_rate=10, strict_seed=False):
     """
     Class that trains agents in an environment
     """
 
-    # prepare class variables
+    self.params = Trainer.Parameters() # legacy setup
     self.track = TrackTraining(rolling_average_num=episode_log_rate)
-    self.params = Trainer.Parameters()
+
     self.agent = agent
     self.env = env
+
     self.saved_trainer_params = False
     self.last_loaded_agent_id = None
     self.last_saved_agent_id = None
     self.episode_fcn = None
+
+    self.params.num_episodes = num_episodes
+    self.params.test_freq = test_freq
+    self.params.save_freq = save_freq
+    self.params.use_curriculum = use_curriculum
 
     # input class options
     self.rngseed = rngseed

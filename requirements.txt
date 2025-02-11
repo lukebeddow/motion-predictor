@@ -15,7 +15,9 @@ wandb
 # additional libaries required by files
 mediapy       # visualisation library recommended with mjx
 gymnasium     # gym toy environments (env/mjx.py)
+imageio
 playground    # mjx control environments (env/mjx.py)
 torchaudio    # torch signal processing (agents/policy_gradient.py)
 dill          # upgraded pickle (modelsaver.py)
 py_lz4framed  # compression library for (modelsaver.py)
+hydra-core # config manager
