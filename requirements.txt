@@ -10,4 +10,4 @@ mediapy
 torch
 numpy 
 gymnasium
-mujoco_playground
+playground
