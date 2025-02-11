@@ -1,0 +1,9 @@
+jax[cuda12_pip]
+jupyter
+ipython
+ipykernel
+wandb
+mujoco_mjx
+brax
+matplotlib
+mediapy
