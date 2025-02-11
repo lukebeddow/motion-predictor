@@ -1,2 +1,17 @@
-file_structure:
-  save_dir: "models"
+# file_structure:
+#   save_dir: "models"
+
+# MAIN CONFIG 
+
+defaults:
+  - model: ppo 
+  - env: gym
+  - hydra: default
+
+wandb:
+  project: motion-predictor
+  job_type: train
+  name: name-me ${now:%Y_%m_%d_%H_%M_%S}
+  mode: online
+
+device: cuda

@@ -7,6 +7,7 @@ import time
 import random
 from datetime import datetime
 import functools
+import wandb
 
 from modelsaver import ModelSaver
 
@@ -282,16 +283,24 @@ class Trainer:
     save_freq: int = 200
     use_curriculum: bool = False
 
-  def __init__(self, agent, env, rngseed=None, device="cpu", log_level=1, plot=False,
+  def __init__(self, agent, env, num_episodes:int,
+               test_freq:int, save_freq:int, use_curriculum:bool,
+               rngseed=None, device="cpu", log_level=1, plot=False,
                render=False, group_name="default_%Y-%m-%d", run_name="default_run_%H-%M",
                save=True, savedir="models", episode_log_rate=10, strict_seed=False):
     """
     Class that trains agents in an environment
     """
 
+    self.params = Trainer.Parameters() # legacy setup
+
+    self.params.num_episodes = num_episodes
+    self.params.test_freq = test_freq
+    self.params.save_freq = save_freq
+    self.params.use_curriculum = use_curriculum
+
     # prepare class variables
     self.track = TrackTraining()
-    self.params = Trainer.Parameters()
     self.agent = agent
     self.env = env
     self.saved_trainer_params = False
@@ -328,16 +337,16 @@ class Trainer:
       elif self.log_level >= 2:
         print("Trainer.__init__() warning: agent and/or env is None and environment is NOT seeded")
 
-    if self.log_level > 0:
-      print("Trainer settings:")
-      print(" -> Run name:", self.run_name)
-      print(" -> Group name:", self.group_name)
-      print(" -> Given seed:", rngseed)
-      print(" -> Training reproducible:", self.training_reproducible)
-      print(" -> Using device:", self.device)
-      print(" -> Save enabled:", self.enable_saving)
-      if self.enable_saving:
-        print(" -> Save path:", self.modelsaver.path)
+    # if self.log_level > 0:
+    #   print("Trainer settings:")
+    #   print(" -> Run name:", self.run_name)
+    #   print(" -> Group name:", self.group_name)
+    #   print(" -> Given seed:", rngseed)
+    #   print(" -> Training reproducible:", self.training_reproducible)
+    #   print(" -> Using device:", self.device)
+    #   print(" -> Save enabled:", self.enable_saving)
+    #   if self.enable_saving:
+    #     print(" -> Save path:", self.modelsaver.path)
 
   def setup_saving(self, run_name="default_run_%H-%M", group_name="default_%Y-%m-%d",
                    savedir="models", enable_saving=None):
@@ -490,7 +499,7 @@ class Trainer:
     hyper_str += "Env hyperparameters:\n\n"
     hyper_str += str(self.env.get_params_dict()).replace(",", "\n") + "\n\n"
 
-    if print_terminal: print(hyper_str)
+    # if print_terminal: print(hyper_str)
 
     if self.enable_saving:
       self.modelsaver.save(filename, txtstr=hyper_str, txtonly=True)
@@ -736,7 +745,7 @@ class Trainer:
       if self.log_level == 1 and (i_episode - 1) % self.log_rate_for_episodes == 0:
         print(f"Begin training episode {i_episode}", flush=True)
       elif self.log_level > 1:
-        print(f"Begin training episode {i_episode} at {datetime.now().strftime('%H:%M')}" + str_to_add, flush=True)
+        print(f"Begin training episode {i_episode} at {datetime.now().strftime('%H:%M')}", flush=True)
 
       self.run_episode(i_episode)
 

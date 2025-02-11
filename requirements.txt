@@ -1,13 +1,20 @@
+# core
 jax[cuda12_pip]
-jupyter
-ipython
-ipykernel
-wandb
 mujoco_mjx
 brax
-matplotlib
-mediapy
 torch
 numpy 
 gymnasium
 playground
+torchaudio
+
+# utils
+matplotlib
+py-lz4framed
+hydra-core
+jupyter
+ipython
+ipykernel
+wandb
+mediapy
+dill

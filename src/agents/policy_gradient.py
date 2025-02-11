@@ -598,8 +598,6 @@ class Agent_PPO:
     max_kl_ratio: float = 1.5
     use_random_action_noise: bool = True
     random_action_noise_size: float = 0.2
-
-    # options
     optimiser: str = "adam" # adam/adamW/RMSProp
     use_kl_penalty: bool = False
     use_entropy_regularisation: bool = False
@@ -619,12 +617,61 @@ class Agent_PPO:
   Transition = namedtuple('Transition',
                           ('state', 'action', 'reward', 'advantage', 'log_prob', 'terminal'))
 
-  def __init__(self, device="cpu", rngseed=None, mode="train", steps=None, debug=False):
+  def __init__(self, 
+               learning_rate_pi: float,
+               learning_rate_vf: float,
+               gamma: float,
+               steps_per_epoch: int,
+               clip_ratio: float,
+               train_pi_iters: int,
+               train_vf_iters: int,
+               lam: float,
+               target_kl: float,
+               max_kl_ratio: float,
+               use_random_action_noise: bool,
+               random_action_noise_size: float,
+               optimiser: str,
+               use_kl_penalty: bool,
+               use_entropy_regularisation: bool,
+               kl_penalty_coefficient: float,
+               entropy_coefficient: float,
+               adam_beta1: float,
+               adam_beta2: float,
+               grad_clamp_value: float,
+               device: str = "cpu", 
+               rngseed: int = None, 
+               mode: str = "train", 
+               steps: int = None, 
+               debug: bool =False):
+    
     """
     Soft actor-critic agent for a given environment
+    
     """
 
-    self.params = Agent_PPO.Parameters()
+    self.params = Agent_PPO.Parameters() # legacy setup 
+
+    self.params.learning_rate_pi = learning_rate_pi
+    self.params.learning_rate_vf = learning_rate_vf
+    self.params.gamma = gamma
+    self.params.steps_per_epoch = steps_per_epoch
+    self.params.clip_ratio = clip_ratio
+    self.params.train_pi_iters = train_pi_iters
+    self.params.train_vf_iters = train_vf_iters
+    self.params.lam = lam
+    self.params.target_kl = target_kl
+    self.params.max_kl_ratio = max_kl_ratio
+    self.params.use_random_action_noise = use_random_action_noise
+    self.params.random_action_noise_size = random_action_noise_size
+    self.params.optimiser = optimiser
+    self.params.use_kl_penalty = use_kl_penalty
+    self.params.use_entropy_regularisation = use_entropy_regularisation
+    self.params.kl_penalty_coefficient = kl_penalty_coefficient
+    self.params.entropy_coefficient = entropy_coefficient
+    self.params.adam_beta1 = adam_beta1
+    self.params.adam_beta2 = adam_beta2
+    self.params.grad_clamp_value = grad_clamp_value
+
     self.device = torch.device(device)
     self.rngseed = rngseed
     self.rng = np.random.default_rng(rngseed)

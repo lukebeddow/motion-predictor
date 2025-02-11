@@ -2,6 +2,7 @@
 IMAGE_NAME = motion-predictor
 CONTAINER_NAME = motion-predictor
 WORKDIR = $(PWD)/src
+CONFDIR = $(PWD)/configs
 PORT = 8888
 GPU_FLAG = --gpus device=0
 # Default target
@@ -23,12 +24,12 @@ build:
 # Run the container with GPU support
 .PHONY: run
 run:
-	docker run --rm $(GPU_FLAG) -v $(WORKDIR):/workspace $(IMAGE_NAME)
+	docker run --rm $(GPU_FLAG) -v $(WORKDIR):/workspace -v $(CONFDIR):/workspace/configs $(IMAGE_NAME)
 
 # Open an interactive shell in the container
 .PHONY: shell
 shell:
-	docker run -it --rm $(GPU_FLAG) -v $(WORKDIR):/workspace $(IMAGE_NAME) bash
+	docker run -it --rm $(GPU_FLAG) -v $(WORKDIR):/workspace/src/ -v $(CONFDIR):/workspace/configs $(IMAGE_NAME) bash
 
 # Run Jupyter Notebook with GPU support 
 .PHONY: jupyter
