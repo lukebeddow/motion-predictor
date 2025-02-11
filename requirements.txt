@@ -1,13 +1,21 @@
+# core essential machine learning libraries
 jax[cuda12_pip]
+mujoco_mjx
+brax
+torch
+numpy
+
+# essential during development
 jupyter
+matplotlib
 ipython
 ipykernel
 wandb
-mujoco_mjx
-brax
-matplotlib
-mediapy
-torch
-numpy 
-gymnasium
-playground
+
+# additional libaries required by files
+mediapy       # visualisation library recommended with mjx
+gymnasium     # gym toy environments (env/mjx.py)
+playground    # mjx control environments (env/mjx.py)
+torchaudio    # torch signal processing (agents/policy_gradient.py)
+dill          # upgraded pickle (modelsaver.py)
+py_lz4framed  # compression library for (modelsaver.py)

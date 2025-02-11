@@ -12,155 +12,172 @@ from modelsaver import ModelSaver
 
 class TrackTraining:
 
-  def __init__(self, test_metrics=None, avg_num=50, plt_frequency_seconds=30):
+  def __init__(self, rolling_average_num=250, plt_frequency_seconds=1):
     """
     Track training data and generate matplotlib plots. To save test metrics pass
     in a list of metric names eg ["success_rate", "average_force", ...]. Metrics
     are stored as floats
     """
     self.numpy_float = np.float32
-    self.avg_num = avg_num
+    self.avg_num = rolling_average_num
     self.plt_frequency_seconds = plt_frequency_seconds
+    self.last_log_time = time.process_time()
     # plotting options
-    self.plot_episode_time = False
-    self.plot_train_raw = False
-    self.plot_train_avg = True
-    self.plot_test_raw = True
-    self.plot_test_metrics = False
+    self.plot_raw = False # default is to plot rolling averages
     # general
     self.episodes_done = 0
     self.last_plot = 0
     self.per_action_time_taken = np.array([], dtype=self.numpy_float)
     self.avg_time_taken = np.array([], dtype=self.numpy_float)
     # training data
-    self.train_episodes = np.array([], dtype=np.int32)
-    self.train_rewards = np.array([], dtype=self.numpy_float)
-    self.train_durations = np.array([], dtype=np.int32)
-    self.train_avg_episodes = np.array([], dtype=np.int32)
-    self.train_avg_rewards = np.array([], dtype=self.numpy_float)
-    self.train_avg_durations = np.array([], dtype=np.int32)
-    self.train_curriculum_stages = np.array([], dtype=np.int32)
+    self.train_data = {
+      # automatically handled by this class
+      "episodes_done" : 0,
+      "episodes" : np.array([], dtype=np.int32),
+      # user should log extra metrics with TrackTraining.log_episode(dict_of_name_value_pairs)
+    }
     # testing data
-    self.test_episodes = np.array([], dtype=np.int32)
-    self.test_rewards = np.array([], dtype=self.numpy_float)
-    self.test_durations = np.array([], dtype=np.int32)
-    self.test_curriculum_stages = np.array([], dtype=np.int32)
-    self.n_test_metrics = 0
-    self.test_metric_names = []
-    self.test_metric_values = []
-    if test_metrics is not None: self.add_test_metrics(test_metrics)
-    # misc
+    self.test_data = {
+      # automatically handled by this class
+      "tests_done" : 0,
+      "test_episodes" : np.array([], dtype=np.int32),
+      # user should log extra metrics with TrackTraining.log_test(dict_of_name_value_pairs)
+    }
+    self.base_metrics = (
+      list(self.train_data.keys()) + list(self.test_data.keys()) + ["averages_done"]
+    )
+    # for plotting
     self.fig = None
     self.axs = None
+    self.line_dict = {}
 
-  def add_test_metrics(self, metrics_to_add, dtype=None, values=None):
+  def add_metrics(self, metric_names, type, dtypes=None, values=None):
     """
-    Include additional test metrics
-    """
-
-    if metrics_to_add is None: return
-
-    if dtype is None: dtype = self.numpy_float
-
-    if isinstance(metrics_to_add, str):
-      metrics_to_add = [metrics_to_add]
-    if isinstance(values, np.ndarray):
-      values = [values]
-
-    for i, m in enumerate(metrics_to_add):
-      self.test_metric_names.append(m)
-      if values is None:
-        thisvalue = np.array([], dtype=dtype)
-      else:
-        thisvalue = values[i]
-      self.test_metric_values.append(thisvalue)
-
-    self.n_test_metrics = len(self.test_metric_names)
-
-  def get_test_metric(self, metric_name):
-    """
-    Return the array corresponding to a given metric_name
+    Add additional metrics for logging.
+      - metric_names: list of names associated with each metric
+      - type: either 'train' or 'test', to indicate when metrics are logged
+      - dtypes: optional list of every dtype per metric, should be numpy
+      - values: optional list of initial values to save per metric
     """
 
-    for i in range(len(self.test_metric_names)):
-      if self.test_metric_names[i] == metric_name:
-        return self.test_metrics[i]
-    return None
+    n = len(metric_names)
 
-  def log_training_episode(self, reward, duration, time_taken, curriculum_stage=0):
+    if n == 0:
+      print("TrackTraining.add_metrics() error: metric names should be a list of length > 0")
+
+    if type not in ["train", "test"]:
+      print(f"TrackTraining.add_metrics() error: type must be set to either 'train' or 'test', recieved '{type}'")
+
+    if dtypes is None: 
+      dtypes = [self.numpy_float for _ in range(n)]
+    elif len(dtypes) != n:
+      print(f"TrackTraining.add_metrics() error: number of metrics {n} != length of dtypes {len(dtypes)}. Either set dtypes=None, or add one for every metric (should be numpy types)")
+    
+    if values is None: 
+      values = [None for _ in range(n)]
+    elif len(values) != n:
+      print(f"TrackTraining.add_metrics() error: number of metrics {n} != length of values {len(values)}. Either set values=None, or add one for every metric (can be None for some)")
+    
+    for i in range(n):
+      vals = [] if values[i] == None else values[i]
+      if metric_names[i] in self.base_metrics:
+        print(f"TrackTraining.add_metrics() error: metric_name given '{metric_names[i]}' is not allowed, this name is reserved for the class internal usage")
+      if type == "train":
+        self.train_data[metric_names[i]] = np.array(vals, dtype=dtypes[i])
+      elif type == "test":
+        self.test_data[metric_names[i]] = np.array(vals, dtype=dtypes[i])
+
+  def log_training_episode(self, log_dict):
     """
     Log one training episode
     """
 
-    self.train_episodes = np.append(self.train_episodes, self.episodes_done)
-    self.train_durations = np.append(self.train_durations, duration)
-    self.train_rewards = np.append(self.train_rewards, reward)
-    self.train_curriculum_stages = np.append(self.train_curriculum_stages, curriculum_stage)
-    self.per_action_time_taken = np.append(self.per_action_time_taken, time_taken)
-    self.episodes_done += 1
+    for key, value in log_dict.items():
+      if key in self.train_data:
+        self.train_data[key] = np.append(self.train_data[key], value)
+      else:
+        print(f"TrackTraining.log_training_episode() warning: log value with name {key} not found in self.train_data. Not logged - metrics should be added first with TrackTraining.add_metrics()")
+
+    self.train_data["episodes_done"] += 1
+    self.train_data["episodes"] = np.append(self.train_data["episodes"], self.train_data["episodes_done"])
 
     # update average information
     self.calc_static_average()
 
-  def log_test_information(self, avg_reward, avg_duration, metrics=None):
+  def log_test(self, log_dict):
     """
-    Log information following a test
+    Log one test
     """
 
-    self.test_episodes = np.append(self.test_episodes, self.episodes_done)
-    self.test_durations = np.append(self.test_durations, avg_duration)
-    self.test_rewards = np.append(self.test_rewards, avg_reward)
+    for key, value in log_dict.items():
+      if key in self.test_data:
+        self.test_data[key] = np.append(self.test_data[key], value)
+      else:
+        print(f"TrackTraining.log_test() warning: log value with name {key} not found in self.test_data. Not logged - metrics should be added first with TrackTraining.add_metrics()")
 
-    if metrics is not None:
-      if len(metrics) != len(self.n_test_metrics):
-        raise RuntimeError(f"TrackTraining.log_test_information got 'metrics' len={len(metrics)}, but self.n_test_metrics = {self.n_test_metrics}")
-      for i in range(len(metrics)):
-        self.test_metric_values[i] = np.append(self.test_metric_values[i], metrics[i])
+    self.test_data["tests_done"] += 1
+    self.test_data["test_episodes"] = np.append(self.test_data["test_episodes"], self.train_data["episodes_done"])
 
   def calc_static_average(self):
     """
     Average rewards and durations to reduce data points
     """
 
+    if not hasattr(self, "train_data_avg"):
+      self.train_data_avg = {}
+      for key, value in self.train_data.items():
+        if key == "episodes_done":
+          self.train_data_avg["averages_done"] = 0
+        else:
+          self.train_data_avg[key] = np.array([], dtype=value.dtype)
+
     # find number of points we can average
-    num_avg_points = len(self.train_avg_rewards) * self.avg_num
+    num_points_averaged = self.train_data_avg["averages_done"] * self.avg_num
+    num_points_unaveraged = self.train_data["episodes_done"] - num_points_averaged
+    num_new_averages = num_points_unaveraged // self.avg_num
 
     # if we points which have not been averaged yet
-    if num_avg_points + self.avg_num < len(self.train_episodes):
+    if num_new_averages > 0:
 
-      # prepare to average rewards, durations, time taken
-      unaveraged_r = self.train_rewards[num_avg_points:]
-      unaveraged_d = self.train_durations[num_avg_points:]
-      unaveraged_t = self.per_action_time_taken[num_avg_points:]
+      for key, value in self.train_data_avg.items():
 
-      num_points_to_avg = len(unaveraged_r) // self.avg_num
+        if key == "averages_done": continue
 
-      for i in range(num_points_to_avg):
-        # find average values
-        avg_e = self.train_episodes[
-          num_avg_points + (i * self.avg_num) + (self.avg_num // 2)]
-        avg_r = np.mean(unaveraged_r[i * self.avg_num : (i + 1) * self.avg_num])
-        avg_d = np.mean(unaveraged_d[i * self.avg_num : (i + 1) * self.avg_num])
-        avg_t = np.mean(unaveraged_t[i * self.avg_num : (i + 1) * self.avg_num])
-        # append to average lists
-        self.train_avg_episodes = np.append(self.train_avg_episodes, avg_e)
-        self.train_avg_rewards = np.append(self.train_avg_rewards, avg_r)
-        self.train_avg_durations = np.append(self.train_avg_durations, avg_d)
-        self.avg_time_taken = np.append(self.avg_time_taken, avg_t)
+        unaveraged_points = self.train_data[key][num_points_averaged:]
+        assert(len(unaveraged_points) // self.avg_num == num_new_averages)
+
+        for i in range(num_new_averages):
+          new_average = np.mean(unaveraged_points[i * self.avg_num : (i + 1) * self.avg_num])
+          self.train_data_avg[key] = np.append(self.train_data_avg[key], new_average)
+
+      self.train_data_avg["averages_done"] += num_new_averages
 
   def plot_matplotlib(self, xdata, ydata, ylabel, title, axs, label=None):
     """
-    Plot a matplotlib 2x1 subplot
+    Plot onto a given axs
     """
-    axs.plot(xdata, ydata, label=label)
-    axs.set_title(title, fontstyle="italic")
-    axs.set(ylabel=ylabel)
+    if title in self.line_dict:
+      self.line_dict[title].set_xdata(xdata)
+      self.line_dict[title].set_ydata(ydata)
+      axs.relim()
+      axs.autoscale_view()
+    else:
+      self.line_dict[title], = axs.plot(xdata, ydata, label=label)
+      axs.set_title(title, fontstyle="italic")
+      if not self.plot_raw: ylabel = f"{ylabel} (avg={self.avg_num})"
+      axs.set(ylabel=ylabel)
 
-  def plot(self, plttitle=None, plt_frequency_seconds=None):
+    # axs.plot(xdata, ydata, label=label)
+    # axs.set_title(title, fontstyle="italic")
+    # axs.set(ylabel=ylabel)
+
+  def plot(self, plt_frequency_seconds=None):
       """
       Plot training results figures, pass a frequency to plot only if enough
       time has elapsed
       """
+
+      if self.train_data["episodes_done"] < 5: return
 
       if plt_frequency_seconds is None:
         plt_frequency_seconds = self.plt_frequency_seconds
@@ -168,109 +185,83 @@ class TrackTraining:
       # if not enough time has elapsed since the last plot
       if (self.last_plot + plt_frequency_seconds > time.time()):
         return
+      
+      num = len(self.train_data) + len(self.test_data) - len(self.base_metrics) + 1
 
-      self.plot_bar_chart = True
+      # calculate the number of rows and columns needed for plotting
+      rows = int(np.floor(np.sqrt(num)))
+      cols = int(np.ceil(num / rows))
 
-      if self.fig is None:
-        # multiple figures
-        self.fig = []
-        self.axs = []
-        if self.plot_train_raw: 
-          fig1, axs1 = plt.subplots(2, 1)
-          self.fig.append(fig1)
-          self.axs.append(axs1)
-        if self.plot_train_avg:
-          fig2, axs2 = plt.subplots(2, 1)
-          self.fig.append(fig2)
-          self.axs.append(axs2)
-        if self.plot_test_raw:
-          fig3, axs3 = plt.subplots(2, 1)
-          self.fig.append(fig3)
-          self.axs.append(axs3)
-        if self.plot_episode_time:
-          fig4, axs4 = plt.subplots(1, 1)
-          self.fig.append(fig4)
-          self.axs.append([axs4, axs4]) # add paired to hold the pattern
-        if self.plot_test_metrics:
-          for i in range(self.n_test_metrics):
-            fig5, axs5 = plt.subplots(1, 1)
-            self.fig.append(fig5)
-            self.axs.append([axs5, axs5]) # add paired to hold the pattern
+      if self.fig == None:
+        self.fig, self.axs = plt.subplots(cols, rows)
+        self.fig.set_size_inches(rows * 2, cols * 2)
+        self.fig.tight_layout()
+        display.display(self.fig, display_id="live_plot")
 
-      ind = 0
+        if len(self.axs.shape) == 1:
+          self.axs = self.axs.reshape((self.axs.shape[0], 1))
+          print(self.axs.shape)
 
-      E = "Episode"
-      R = "Reward"
-      D = "Duration"
+      ind_row = 0
+      ind_col = 0
 
-      # clear all axes
-      for i, pairs in enumerate(self.axs):
-        if plttitle is not None:
-          self.fig[i].suptitle(plttitle)
-        for axis in pairs:
-          axis.clear()
+      if self.plot_raw:
+        train_metrics = self.train_data.items()
+        train_xdata = np.array(self.train_data["episodes"])
+      else:
+        train_metrics = self.train_data_avg.items()
+        train_xdata = np.array(self.train_data_avg["episodes"])
 
-      if self.plot_train_raw:
-        self.plot_matplotlib(self.train_episodes, self.train_durations, D,
-                             "Raw durations", self.axs[ind][0])
-        self.plot_matplotlib(self.train_episodes, self.train_rewards, R,
-                             "Raw rewards", self.axs[ind][1])
-        self.fig[ind].subplots_adjust(hspace=0.4)
-        ind += 1
-
-      if self.plot_train_avg:
-        self.plot_matplotlib(self.train_avg_episodes, self.train_avg_durations, D,
-                             f"Durations static average ({self.avg_num} samples)", 
-                             self.axs[ind][0])
-        self.plot_matplotlib(self.train_avg_episodes, self.train_avg_rewards, R,
-                             f"Rewards static average ({self.avg_num} samples)", 
-                             self.axs[ind][1])
-        self.fig[ind].subplots_adjust(hspace=0.4)
-        ind += 1
-
-      if self.plot_test_raw:
-        self.plot_matplotlib(self.test_episodes, self.test_durations, D,
-                             "Test durations", self.axs[ind][0])
-        self.plot_matplotlib(self.test_episodes, self.test_rewards, R,
-                             "Test rewards", self.axs[ind][1])
-        self.fig[ind].subplots_adjust(hspace=0.4)
-        ind += 1
-
-      # create plots for static average of time taken per step
-      if self.plot_episode_time:
-        self.plot_matplotlib(self.avgS_episodes, self.avg_time_taken, "Time per action / s",
-          f"Time per action static average ({self.avg_num} samples)", self.axs[ind][0])
-        ind += 1 
-
-      if self.plot_test_metrics:
-        for m, metric in enumerate(self.test_metric_names):
-          self.plot_matplotlib(self.test_episodes, self.test_metric_values[m], f"{metric}",
-            f"Test metric: {metric}", self.axs[ind][0])
-          ind += 1 
+      for key, value in train_metrics:
         
-      plt.pause(0.001)
+        if key in self.base_metrics: continue
+
+        self.plot_matplotlib(train_xdata, value, key, key, self.axs[ind_col][ind_row])
+        
+        ind_row += 1
+        if ind_row >= rows:
+          ind_row = 0
+          ind_col += 1
+
+      for key, value in self.test_data.items():
+        
+        if key in self.base_metrics: continue
+
+        self.plot_matplotlib(np.array(self.test_data["test_episodes"]), value, key, key, self.axs[ind_col][ind_row])
+        
+        ind_row += 1
+        if ind_row >= rows:
+          ind_row = 0
+          ind_col += 1
+
+      self.fig.canvas.draw()
+      self.fig.canvas.flush_events()
+
+      # for juypter notebook
+      display.update_display(self.fig, display_id="live_plot")
+
+      # # for normal windows
+      # plt.pause(0.001)
 
       # save that we plotted
       self.last_plot = time.time()
 
       return
 
-  def print_training(self):
-    """
-    Print out some training metrics
-    """
-    if self.episodes_done % self.avg_num == 0:
-      if len(self.train_avg_rewards) == 0: return
-      else: print(f"Episode {self.episodes_done}, avg_reward = {self.train_avg_rewards[-1]}")
+  def print_train_metrics(self, avg_only=True):
+    if not avg_only or self.train_data["episodes_done"] % self.avg_num == 0:
+      print(f"Episode {self.train_data['episodes_done']} training metrics:")
+      for key, value in self.train_data.items():
+        if key not in self.base_metrics:
+          print(f" -> {key} = {value[-1]:.3f}")
+      print()
 
-  def get_avg_return(self):
-    """
-    Return the average reward only if the value has updated
-    """
-
-    if self.episodes_done % self.avg_num == 0:
-      if len(self.train_avg_rewards) == 0: return None
-      else: return self.train_avg_rewards[-1]
+  def print_test_metrics(self):
+    print(f"Test {self.test_data['tests_done']} metrics, at training episode {self.train_data['episodes_done']}:")
+    for key, value in self.test_data.items():
+      if key not in self.base_metrics:
+        print(f" -> {key} = {value[-1]:.3f}")
+    print()
 
 class Trainer:
 
@@ -284,13 +275,13 @@ class Trainer:
 
   def __init__(self, agent, env, rngseed=None, device="cpu", log_level=1, plot=False,
                render=False, group_name="default_%Y-%m-%d", run_name="default_run_%H-%M",
-               save=True, savedir="models", episode_log_rate=10, strict_seed=False):
+               save=True, savedir="models", episode_log_rate=250, strict_seed=False):
     """
     Class that trains agents in an environment
     """
 
     # prepare class variables
-    self.track = TrackTraining()
+    self.track = TrackTraining(rolling_average_num=episode_log_rate)
     self.params = Trainer.Parameters()
     self.agent = agent
     self.env = env
@@ -306,6 +297,10 @@ class Trainer:
     self.plot = plot
     self.render = render
     self.log_rate_for_episodes = episode_log_rate
+
+    # set up logging
+    train_metrics = ["duration", "reward"]
+    self.track.add_metrics(train_metrics, "train")
     
     # set up saving
     self.train_param_savename = "Trainer_params"
@@ -314,8 +309,9 @@ class Trainer:
 
     # are we plotting
     if self.plot:
-      global plt
+      global plt, display
       import matplotlib.pyplot as plt
+      from IPython import display
       plt.ion()
 
     # seed the environment (skip if given None for agent and env)
@@ -684,9 +680,11 @@ class Trainer:
         if test: break
 
         # save training data
-        self.track.log_training_episode(cumulative_reward, t + 1, time_per_step,
-                                        curriculum_stage=0 if not self.params.use_curriculum
-                                        else self.curriculum_dict["stage"])
+        self.track.log_training_episode({
+          "duration" : t + 1,
+          "reward" : cumulative_reward,
+        })
+
         cumulative_reward = 0
 
         break
@@ -736,12 +734,13 @@ class Trainer:
       if self.log_level == 1 and (i_episode - 1) % self.log_rate_for_episodes == 0:
         print(f"Begin training episode {i_episode}", flush=True)
       elif self.log_level > 1:
-        print(f"Begin training episode {i_episode} at {datetime.now().strftime('%H:%M')}" + str_to_add, flush=True)
+        print(f"Begin training episode {i_episode} at {datetime.now().strftime('%H:%M')}", flush=True)
 
       self.run_episode(i_episode)
 
       # plot graphs to the screen
-      if self.plot: self.track.plot(plt_frequency_seconds=1)
+      if self.log_level > 0: self.track.print_train_metrics(avg_only=(self.log_level == 1))
+      if self.plot: self.track.plot()
 
       # check if we need to do any episode level updates (eg target network)
       self.agent.update_episode(i_episode)
@@ -763,8 +762,7 @@ class Trainer:
 
     # wrap up
     if self.render: self.env.render()
-    if self.plot:
-      self.track.plot(force=True, end=True, hang=True) # leave plots on screen if we are plotting
+    if self.plot: self.track.plot()
 
   # need to define these functions for Trainer base class
 

@@ -4,7 +4,7 @@ from time import sleep
 from random import random
 
 from env.env import GymHandler
-from trainer import Trainer
+from trainers.base_trainer import Trainer
 from agents.policy_gradient import Agent_PPO, MLPActorCriticPG
 
 def print_time_taken():
