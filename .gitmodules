@@ -1,0 +1,3 @@
+[submodule "src/repos/dreamerv3"]
+	path = src/repos/dreamerv3
+	url = git@github.com:mavronator1/dreamerv3.git
