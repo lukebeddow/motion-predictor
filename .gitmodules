@@ -1,3 +1,6 @@
 [submodule "src/repos/dreamerv3"]
 	path = src/repos/dreamerv3
 	url = git@github.com:mavronator1/dreamerv3.git
+[submodule "src/repos/extreme-parkour"]
+	path = src/repos/extreme-parkour
+	url = git@github.com:lukebeddow/extreme-parkour.git
