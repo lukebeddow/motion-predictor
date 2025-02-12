@@ -1,6 +1,10 @@
 name: ppo
 
-algo: # algo params 
+device: ${device}
+
+# parameters to instantiate the agent
+agent:
+  _target_: agents.policy_gradient.Agent_PPO
   learning_rate_pi: 1e-5
   learning_rate_vf: 1e-4
   gamma: 0.99
@@ -23,3 +27,22 @@ algo: # algo params
   grad_clamp_value: null
   rngseed: 123
 
+# parameters to instantiate the network
+network:
+  _target_: agents.policy_gradient.MLPActorCriticPG
+  obs_dim: ???
+  act_dim: ???
+  hidden_sizes:
+    - 64
+    - 64
+  continous_actions: True
+
+# parameters to instantiate the trainer
+trainer:
+  _target_: trainers.base_trainer.Trainer
+  num_episodes: 10000
+  test_freq: 1000
+  save_freq: 1000
+  use_curriculum: False
+  rngseed: 123
+  log_level: 1

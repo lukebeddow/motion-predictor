@@ -51,7 +51,7 @@ class ModelSaver:
     self.log_level = log_level
 
     # if we are given a root, we can use abs paths not relative
-    if not root:
+    if not root or root == "":
       # assume the root is the path to the current running files
       self.root = os.path.dirname(os.path.abspath(__file__)) + "/"
       use_root = False
@@ -65,7 +65,7 @@ class ModelSaver:
     self.last_loadpath = ""
 
     # ensure path ends in trailing slash
-    if path[-1] != '/': path += '/'
+    if path != "" and path[-1] != '/': path += '/'
     self.rel_path = path
 
     # if a root is given, add this to the path
@@ -441,16 +441,13 @@ class ModelSaver:
 
     if self.in_folder: savepath += self.folder
 
-    # if only saving a text file 
-    # don't think we need to save hyperparameters anymore given we have wandb
-
-    # if txtonly != None:
-    #   savename = name + '.txt'
-    #   if self.log_level > 0:
-    #     print(f"Saving text only {savepath + savename}")
-    #   with open(savepath + savename, 'w') as openfile:
-    #     openfile.write(txtstr)
-    #   return savepath + savename
+    if txtonly != None:
+      savename = name + '.txt'
+      if self.log_level > 0:
+        print(f"Saving text only {savepath + savename}")
+      with open(savepath + savename, 'w') as openfile:
+        openfile.write(txtstr)
+      return savepath + savename
   
     # find out what the most recent file number in the savepath was
     if force_suffix is not None:
@@ -490,14 +487,14 @@ class ModelSaver:
 
     # if we are asked to save a .txt file too
     
-    # if txtstr != None:
-    #   ext = '.txt'
-    #   if txtlabel != None: ext = '_' + txtlabel + ext
-    #   txtname = name + '_' + self.file_num.format(save_id) + ext
-    #   with open(savepath + txtname, 'w') as openfile:
-    #     openfile.write(txtstr)
-    #     if self.log_level > 0:
-    #       print(f"Saved also: {txtname}")
+    if txtstr != None:
+      ext = '.txt'
+      if txtlabel != None: ext = '_' + txtlabel + ext
+      txtname = name + '_' + self.file_num.format(save_id) + ext
+      with open(savepath + txtname, 'w') as openfile:
+        openfile.write(txtstr)
+        if self.log_level > 0:
+          print(f"Saved also: {txtname}")
 
     return savepath + savename
 

@@ -1,0 +1,4 @@
+_target_: trainers.base_trainer.TrackTraining
+use_wandb: false
+rolling_average_num: 250
+plt_frequency_seconds: 1

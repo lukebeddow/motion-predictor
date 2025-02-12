@@ -13,12 +13,15 @@ from modelsaver import ModelSaver
 
 class TrackTraining:
 
-  def __init__(self, rolling_average_num=250, plt_frequency_seconds=1):
+  def __init__(self, rolling_average_num=250, plt_frequency_seconds=1,
+               use_wandb=False):
     """
     Track training data and generate matplotlib plots. To save test metrics pass
     in a list of metric names eg ["success_rate", "average_force", ...]. Metrics
     are stored as floats
     """
+    # extract inputs
+    self.wandb_enabled = use_wandb
     self.numpy_float = np.float32
     self.avg_num = rolling_average_num
     self.plt_frequency_seconds = plt_frequency_seconds
@@ -105,11 +108,10 @@ class TrackTraining:
     # update average information
     new_data = self.calc_static_average()
 
-    if new_data:
-      
+    if self.wandb_enabled and new_data:
+      # temporary test of wanbd
       wandb.log({'reward':self.train_data['reward'][-1]})
     
-
   def log_test(self, log_dict):
     """
     Log one test
@@ -194,6 +196,12 @@ class TrackTraining:
       if (self.last_plot + plt_frequency_seconds > time.time()):
         return
       
+      if not "plt" in globals():
+        global plt, display
+        import matplotlib.pyplot as plt
+        from IPython import display
+        plt.ion()
+      
       num = len(self.train_data) + len(self.test_data) - len(self.base_metrics) + 1
 
       # calculate the number of rows and columns needed for plotting
@@ -208,7 +216,6 @@ class TrackTraining:
 
         if len(self.axs.shape) == 1:
           self.axs = self.axs.reshape((self.axs.shape[0], 1))
-          print(self.axs.shape)
 
       ind_row = 0
       ind_col = 0
@@ -281,17 +288,17 @@ class Trainer:
     save_freq: int = 200
     use_curriculum: bool = False
 
-  def __init__(self, agent, env, num_episodes:int,
+  def __init__(self, agent, env, logger, num_episodes:int,
                test_freq:int, save_freq:int, use_curriculum:bool,
-               rngseed=None, device="cpu", log_level=1, plot=False,
-               wandb_plot=False, render=False, group_name="default_%Y-%m-%d", run_name="default_run_%H-%M",
-               save=True, savedir="models", episode_log_rate=10, strict_seed=False):
+               seed=None, device="cpu", log_level=1, plot=False,
+               render=False, group_name="", run_name="run",
+               save=True, savedir="", episode_log_rate=10, strict_seed=False):
     """
     Class that trains agents in an environment
     """
 
     self.params = Trainer.Parameters() # legacy setup
-    self.track = TrackTraining(rolling_average_num=episode_log_rate)
+    self.track = logger
 
     self.agent = agent
     self.env = env
@@ -307,7 +314,7 @@ class Trainer:
     self.params.use_curriculum = use_curriculum
 
     # input class options
-    self.rngseed = rngseed
+    self.rngseed = seed
     self.device = device
     self.log_level = log_level
     self.plot = plot
@@ -335,7 +342,7 @@ class Trainer:
     self.training_reproducible = strict_seed
     if agent is not None and env is not None: self.seed(strict=strict_seed)
     else:
-      if strict_seed or rngseed is not None:
+      if strict_seed or seed is not None:
         raise RuntimeError("Trainer.__init__() error: agent and/or env is None, environment is not seeded by rngseed or strict_seed was set")
       elif self.log_level >= 2:
         print("Trainer.__init__() warning: agent and/or env is None and environment is NOT seeded")
@@ -344,15 +351,15 @@ class Trainer:
       print("Trainer settings:")
       print(" -> Run name:", self.run_name)
       print(" -> Group name:", self.group_name)
-      print(" -> Given seed:", rngseed)
+      print(" -> Given seed:", seed)
       print(" -> Training reproducible:", self.training_reproducible)
       print(" -> Using device:", self.device)
       print(" -> Save enabled:", self.enable_saving)
       if self.enable_saving:
         print(" -> Save path:", self.modelsaver.path)
 
-  def setup_saving(self, run_name="default_run_%H-%M", group_name="default_%Y-%m-%d",
-                   savedir="models", enable_saving=None):
+  def setup_saving(self, run_name="run", group_name="",
+                   savedir="", enable_saving=None):
     """
     Provide saving information and enable saving of models during training. The
     save() function will not work without first running this function
@@ -360,20 +367,16 @@ class Trainer:
 
     if enable_saving is not None:
       self.enable_saving = enable_saving
-
-    # check for default group and run names (use current time and date)
-    if group_name.startswith("default_"):
-      group_name = datetime.now().strftime(group_name[8:])
-    if run_name.startswith("default_"):
-      run_name = f"{datetime.now().strftime(run_name[8:])}"
       
     # save information and create modelsaver to manage saving/loading
     self.group_name = group_name
     self.run_name = run_name
     self.savedir = savedir
 
+    if len(self.savedir) > 0 and self.savedir[-1] != "/": self.savedir += "/"
+
     if self.enable_saving:
-      self.modelsaver = ModelSaver(self.savedir + "/" + self.group_name,
+      self.modelsaver = ModelSaver(self.savedir + self.group_name,
                                    log_level=self.log_level)
   
   def to_torch(self, data, dtype=torch.float32):

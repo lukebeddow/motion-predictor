@@ -1,0 +1,3 @@
+_target_: env.gym.GymHandler
+name: "Humanoid-v5"
+seed: ${seed}

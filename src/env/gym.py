@@ -4,16 +4,16 @@ import random
 # wrapper to use gym environments
 class GymHandler():
 
-  def __init__(self, gymenv_name, rngseed=None):
+  def __init__(self, name, seed=None):
     """
     Wrapper for gym environments to make them compatible with our code
     """
-    self.name = gymenv_name
-    self.env = gym.make(gymenv_name)
+    self.name = name
+    self.env = gym.make(name)
     obs, info = self.env.reset()
     self.act_dim = self.env.action_space.shape[0]
     self.obs_dim = len(obs)
-    self.rngseed = rngseed
+    self.rngseed = seed
     self.seed()
     self.continuous_actions = False
     self.device = "cpu"

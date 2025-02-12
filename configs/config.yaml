@@ -1,13 +1,13 @@
-# file_structure:
-#   save_dir: "models"
-
-# MAIN CONFIG 
+# MAIN CONFIGS
 
 defaults:
-  - model: ppo 
-  - env: gym
-  - trainer: base
+  - _self_
+  - model: ppo
+  - env: gym_hopper
+  - trainer: base_trainer
+  - logger: track
   - hydra: default
+  - exp: default # should be last in this list, as it edits the above
 
 wandb:
   project: motion-predictor
@@ -16,3 +16,4 @@ wandb:
   mode: online
 
 device: cuda
+seed: 123

@@ -1,0 +1,12 @@
+_target_: trainers.base_trainer.Trainer
+num_episodes: 1000
+test_freq: 200
+save_freq: 200
+save: True
+seed: ${seed}
+use_curriculum: False
+log_level: 1
+plot: False
+episode_log_rate: 250
+strict_seed: False
+savedir: "./"

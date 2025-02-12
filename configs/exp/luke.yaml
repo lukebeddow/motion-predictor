@@ -1,0 +1,19 @@
+# @package _global_
+defaults:
+  - override /model: ppo
+  - override /env: gym_walker
+  - override /trainer: base_trainer
+  # - override /wandb: wandb
+
+# this file is for luke's development work
+
+# above we override parameters ('# @package _global_' needs to be the first line)
+# ---- #
+# below we override specific parameters of the parameters we redefined above
+# note we can add additional fields to these parameters here
+
+wandb:
+  mode: offline
+
+trainer:
+  num_episodes: 500

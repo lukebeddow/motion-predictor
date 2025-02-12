@@ -241,26 +241,26 @@ class MLPActorCriticPG(nn.Module):
 
   name = "MLPActorCriticPG_"
 
-  def __init__(self, n_obs, action_dim, continous_actions=True,
+  def __init__(self, obs_dim, act_dim, continous_actions=True,
                 hidden_sizes=(64,64), activation=nn.Tanh, mode="train",
                 device="cpu"):
     super().__init__()
 
-    self.n_obs = n_obs
-    self.n_actions = action_dim
+    self.n_obs = obs_dim
+    self.n_actions = act_dim
     self.mode = mode
     self.device = device
 
     # policy builder depends on action space
     if continous_actions:
-      self.action_dim = action_dim
-      self.pi = MLPGaussianActor(n_obs, action_dim, hidden_sizes, activation, device=device)
+      self.action_dim = act_dim
+      self.pi = MLPGaussianActor(obs_dim, act_dim, hidden_sizes, activation, device=device)
     else:
       self.action_dim = 1 # discrete so only one action
-      self.pi = MLPCategoricalActor(n_obs, action_dim, hidden_sizes, activation, device=device)
+      self.pi = MLPCategoricalActor(obs_dim, act_dim, hidden_sizes, activation, device=device)
 
     # build value function
-    self.vf  = MLPCritic(n_obs, hidden_sizes, activation)
+    self.vf  = MLPCritic(obs_dim, hidden_sizes, activation)
 
     if self.mode not in ["test", "train"]:
       raise RuntimeError(f"MLPActorCriticPG given mode={mode}, should be 'test' or 'train'")

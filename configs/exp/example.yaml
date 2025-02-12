@@ -1,0 +1,27 @@
+# @package _global_
+defaults:
+  - override /model: ppo
+  - override /env: gym_walker
+  - override /trainer: base_trainer
+
+# above we override parameters ('# @package _global_' needs to be the first line)
+# ---- #
+# below we override specific parameters of the parameters we redefined above
+# note we can add additional fields to these parameters here
+
+dreamer:
+  learning_rate: 1e-5
+
+model:
+  agent:
+    learning_rate_pi: 1.0102
+    learning_rate_vf: 140
+  network:
+    hidden_sizes:
+    - 64
+    - 64
+    - 64
+    - 128
+
+trainer:
+  num_episodes: 123
