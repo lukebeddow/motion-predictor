@@ -284,7 +284,7 @@ class Trainer:
   def __init__(self, agent, env, num_episodes:int,
                test_freq:int, save_freq:int, use_curriculum:bool,
                rngseed=None, device="cpu", log_level=1, plot=False,
-               render=False, group_name="default_%Y-%m-%d", run_name="default_run_%H-%M",
+               wandb_plot=False, render=False, group_name="default_%Y-%m-%d", run_name="default_run_%H-%M",
                save=True, savedir="models", episode_log_rate=10, strict_seed=False):
     """
     Class that trains agents in an environment
