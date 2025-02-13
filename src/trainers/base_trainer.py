@@ -448,32 +448,6 @@ class BaseTrainer:
     })
     return param_dict
 
-  def save_hyperparameters(self, filename="hyperparameters", strheader=None, 
-                           print_terminal=None):
-    """
-    Save the model hyperparameters
-    """
-
-    if print_terminal is None:
-      if self.log_level > 0: print_terminal = True
-      else: print_terminal = False
-
-    hyper_str = """"""
-    if strheader is not None: hyper_str += strheader + "\n"
-
-    hyper_str += "Trainer hyperparameters:\n\n"
-    hyper_str += str(self.get_param_dict()).replace(",", "\n") + "\n\n"
-
-    hyper_str += "Agent hyperparameters:\n\n"
-    hyper_str += str(self.agent.get_params_dict()).replace(",", "\n") + "\n\n"
-
-    hyper_str += "Env hyperparameters:\n\n"
-    hyper_str += str(self.env.get_params_dict()).replace(",", "\n") + "\n\n"
-
-    if print_terminal: print(hyper_str)
-
-    if self.enable_saving:
-      self.modelsaver.save(filename, txtstr=hyper_str, txtonly=True)
 
   def load(self, run_name, id=None, group_name=None, path_to_run_folder=None, 
            agentonly=False, trackonly=False):
@@ -630,12 +604,7 @@ class BaseTrainer:
     if i_start == 0:
       # save starting network parameters and training settings
       self.save()
-      self.save_hyperparameters()
-    else:
-      # save a record of the training restart
-      continue_label = f"Training is continuing from episode {i_start} with these hyperparameters\n"
-      hypername = f"hyperparameters_from_ep_{i_start}"
-      self.save_hyperparameters(filename=hypername, strheader=continue_label)
+
 
     if self.log_level > 0:
       print(f"\nBegin training, target is {self.params.num_episodes} episodes\n", flush=True)
