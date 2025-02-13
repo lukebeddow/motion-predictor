@@ -5,15 +5,25 @@ defaults:
   - model: ppo
   - env: gym_hopper
   - trainer: base_trainer
-  - logger: track
   - hydra: default
-  - exp: default # should be last in this list, as it edits the above
+  - exp: default # should be last in defaults list
+
+run_name: "run"
+savedir: ${run_name}
 
 wandb:
-  project: motion-predictor
+  project: trustline-mp
   job_type: train
-  name: name-me ${now:%Y_%m_%d_%H_%M_%S}
+  name: ${run_name} ${exp_name} ${now:%Y_%m_%d_%H_%M_%S}
   mode: online
+
+logger:
+  log_rate: 25
+  log_to_wandb: True
+  log_to_terminal: True
+  log_to_JSON: True
+  json_logdir: ${savedir}
+  json_filename: "metrics.jsonl"
 
 device: cuda
 seed: 123

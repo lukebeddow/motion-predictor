@@ -1,1 +1,4 @@
 # does nothing, no settings are overriden
+
+# important! give the name of this experiment
+exp_name: default

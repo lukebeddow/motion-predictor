@@ -1,4 +1,4 @@
-_target_: trainers.base_trainer.Trainer
+_target_: trainers.base_trainer.BaseTrainer
 num_episodes: 1000
 test_freq: 200
 save_freq: 200
@@ -9,4 +9,5 @@ log_level: 1
 plot: False
 episode_log_rate: 250
 strict_seed: False
-savedir: "./"
+savedir: ${savedir}
+run_name: ${run_name}

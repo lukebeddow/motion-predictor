@@ -278,7 +278,439 @@ class TrackTraining:
         print(f" -> {key} = {value[-1]:.3f}")
     print()
 
-class Trainer:
+class BaseTrainer:
+
+  @dataclass
+  class Parameters:
+
+    num_episodes: int = 1_000
+    test_freq: int = 200
+    save_freq: int = 200
+    use_curriculum: bool = False
+
+  def __init__(self, agent, env, logger, num_episodes:int,
+               test_freq:int, save_freq:int, use_curriculum:bool,
+               seed=None, device="cpu", log_level=1, plot=False,
+               render=False, group_name="", run_name="run",
+               save=True, savedir="run", episode_log_rate=10, strict_seed=False):
+    """
+    Class that trains agents in an environment
+    """
+
+    self.params = LegacyTrainer.Parameters()
+    self.logger = logger
+
+    self.agent = agent
+    self.env = env
+
+    self.saved_trainer_params = False
+    self.last_loaded_agent_id = None
+    self.last_saved_agent_id = None
+    self.episode_fcn = None
+
+    self.params.num_episodes = num_episodes
+    self.params.test_freq = test_freq
+    self.params.save_freq = save_freq
+    self.params.use_curriculum = use_curriculum
+
+    # input class options
+    self.rngseed = seed
+    self.device = device
+    self.log_level = log_level
+    self.plot = plot
+    self.render = render
+    self.log_rate_for_episodes = episode_log_rate
+    
+    # set up saving
+    self.setup_saving(run_name, group_name, savedir, enable_saving=save)
+
+    # are we plotting
+    if self.plot:
+      global plt, display
+      import matplotlib.pyplot as plt
+      from IPython import display
+      plt.ion()
+
+    # seed the environment (skip if given None for agent and env)
+    # training only reproducible if torch.manual_seed() set BEFORE agent network initialisation
+    self.training_reproducible = strict_seed
+    if agent is not None and env is not None: self.seed(strict=strict_seed)
+    else:
+      if strict_seed or seed is not None:
+        raise RuntimeError("Trainer.__init__() error: agent and/or env is None, environment is not seeded by rngseed or strict_seed was set")
+      elif self.log_level >= 2:
+        print("Trainer.__init__() warning: agent and/or env is None and environment is NOT seeded")
+
+    if self.log_level > 0:
+      print("Trainer settings:")
+      print(" -> Run name:", self.run_name)
+      print(" -> Group name:", self.group_name)
+      print(" -> Given seed:", seed)
+      print(" -> Training reproducible:", self.training_reproducible)
+      print(" -> Using device:", self.device)
+      print(" -> Save enabled:", self.enable_saving)
+      if self.enable_saving:
+        print(" -> Save path:", self.modelsaver.path)
+
+  def setup_saving(self, run_name="run", group_name="",
+                   savedir="./", enable_saving=None):
+    """
+    Provide saving information and enable saving of models during training. The
+    save() function will not work without first running this function
+    """
+
+    if enable_saving is not None:
+      self.enable_saving = enable_saving
+      
+    # save information and create modelsaver to manage saving/loading
+    self.group_name = group_name
+    self.run_name = run_name
+    self.savedir = savedir
+
+    if len(self.savedir) > 0 and self.savedir[-1] != "/": self.savedir += "/"
+
+    if self.enable_saving:
+      self.modelsaver = ModelSaver(self.savedir, log_level=self.log_level)
+  
+  def to_torch(self, data, dtype=torch.float32):
+    if torch.is_tensor(data):
+      return data.unsqueeze(0)
+    else:
+      return torch.tensor(data, device=self.device, dtype=dtype).unsqueeze(0)
+
+  def seed(self, rngseed=None, strict=None):
+    """
+    Set a random seed for the entire environment
+    """
+    if rngseed is None:
+      if self.rngseed is not None: rngseed = self.rngseed
+      else: 
+        self.training_reproducible = False
+        rngseed = np.random.randint(0, 2_147_483_647)
+
+    torch.manual_seed(rngseed)
+    self.rngseed = rngseed
+    self.agent.seed(rngseed)
+    self.env.seed(rngseed)
+
+    # if we want to ensure reproducitibilty at the cost of performance
+    if strict is None: strict = self.training_reproducible
+    if strict:
+      os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8" # increases GPU usage by 24MiB, see https://docs.nvidia.com/cuda/cublas/index.html#cublasApi_reproducibility and ctrl+f "CUBLAS_WORKSPACE_CONFIG"
+      torch.backends.cudnn.benchmark = False
+      torch.use_deterministic_algorithms(mode=True)
+    else: self.training_reproducible = False
+
+  def save(self, extra_text_file_name=None, extra_text_file_string=None):
+    """
+    Save the state of the current trainer and agent.
+
+    To save an additional text file with the agent set:
+      * txtfilename: str -> name of additional file to save, {agent_file_name}_{txtfilestr}.txt
+      * txtfilestr: str -> content of additional file
+    """
+
+    if not self.enable_saving: 
+      if self.log_level > 1:
+        print("Trainer.save(): self.enable_saving = False, nothing saved")
+      return
+
+    # save the actual (saves a new file each time, numbering 1,2,3,...)
+    self.modelsaver.save(self.agent.name, pyobj=self.agent.get_save_state(),
+                         txtstr=extra_text_file_string, txtlabel=extra_text_file_name)
+    
+    self.last_saved_agent_id = self.modelsaver.last_saved_id
+
+  def get_save_id(self, episode):
+    """
+    Return the save id associated with a given episode. Note: if the test_freq
+    or save_freq is changed, this function will no longer output correct ids
+    """
+    first_save = 1
+    if self.params.test_freq == self.params.save_freq:
+      save_id = first_save + (episode // self.params.test_freq)
+    else:
+      save_id = first_save + (episode // self.params.test_freq
+                              + episode // self.params.save_freq
+                              - episode // (np.lcm(self.params.test_freq, 
+                                                   self.params.save_freq)))
+    return save_id
+
+  def get_param_dict(self):
+    """
+    Return a dictionary of hyperparameters
+    """
+    param_dict = asdict(self.params)
+    param_dict.update({
+      "rngseed" : self.rngseed,
+      "training_reproducible" : self.training_reproducible,
+      "saving_enabled" : self.enable_saving,
+    })
+    return param_dict
+
+  def save_hyperparameters(self, filename="hyperparameters", strheader=None, 
+                           print_terminal=None):
+    """
+    Save the model hyperparameters
+    """
+
+    if print_terminal is None:
+      if self.log_level > 0: print_terminal = True
+      else: print_terminal = False
+
+    hyper_str = """"""
+    if strheader is not None: hyper_str += strheader + "\n"
+
+    hyper_str += "Trainer hyperparameters:\n\n"
+    hyper_str += str(self.get_param_dict()).replace(",", "\n") + "\n\n"
+
+    hyper_str += "Agent hyperparameters:\n\n"
+    hyper_str += str(self.agent.get_params_dict()).replace(",", "\n") + "\n\n"
+
+    hyper_str += "Env hyperparameters:\n\n"
+    hyper_str += str(self.env.get_params_dict()).replace(",", "\n") + "\n\n"
+
+    if print_terminal: print(hyper_str)
+
+    if self.enable_saving:
+      self.modelsaver.save(filename, txtstr=hyper_str, txtonly=True)
+
+  def load(self, run_name, id=None, group_name=None, path_to_run_folder=None, 
+           agentonly=False, trackonly=False):
+    """
+    Load a model given a path to it
+    """
+
+    if agentonly and trackonly:
+      raise RuntimeError("Trainer.load() error: agentonly=True and trackonly=True, incompatible arguments")
+
+    # check if modelsaver is defined
+    if not hasattr(self, "modelsaver"):
+      if path_to_run_folder is not None:
+        print(f"load not given a modelsaver, making one from path_to_group: {path_to_run_folder}")
+        self.modelsaver = ModelSaver(path_to_run_folder, log_level=self.log_level)
+      elif group_name is not None:
+        # try to find the group from this folder
+        pathhere = os.path.dirname(os.path.abspath(__file__))
+        print(f"load not given modelsaver or path_to_group, assuming group is local at {pathhere + '/' + self.savedir}")
+        self.modelsaver = ModelSaver(pathhere + "/" + self.savedir + "/" + self.group_name,
+                                     log_level=self.log_level)
+      else:
+        raise RuntimeError("load not given a modelsaver and either of a) path_to_run_folder b) group_name (if group can be found locally)")
+    
+    # don't do this now, we change to save in self.savedir, no run folder
+    # # enter the run folder (exit if already in one)
+    # self.modelsaver.enter_folder(run_name)
+
+    # folderpath ignores the current folder, so add that if necessary
+    if path_to_run_folder is not None:
+      path_to_run_folder += "/" + run_name
+
+    load_agent = self.modelsaver.load(id=id, folderpath=path_to_run_folder,
+                                      filenamestarts="Agent")
+    self.last_loaded_agent_id = self.modelsaver.last_loaded_id
+
+    # get the name of the agent from the filename saved with
+    name = self.modelsaver.get_recent_file(name="Agent")
+    name = name.split("/")[-1]
+    
+    # trim out the agent part
+    name = name[:len("Agent") + len(self.modelsaver.file_ext())]
+
+    # do we have the agent already, if not, create it
+    if self.agent is None:
+      to_exec = f"""self.agent = {name}()"""
+      exec(to_exec)
+    # try to load the save state, but catch situation where we have empty agent
+    try:
+      self.agent.load_save_state(load_agent, device=self.device)
+    except NotImplementedError as e:
+      # agent is not actually loaded, so load as above
+      to_exec = f"""self.agent = {name}()"""
+      exec(to_exec)
+      self.agent.load_save_state(load_agent, device=self.device)
+    if self.log_level >= 2 and hasattr(self.agent, "debug"): 
+      self.agent.debug = True
+
+    # reseed - be aware this will not be contingous
+    self.training_reproducible = False # training no longer reproducible
+    self.seed()
+
+  def run_episode(self, i_episode, test=False):
+    """
+    Run one episode of RL
+    """
+
+    # initialise environment and state
+    obs = self.env.reset()
+    obs = self.to_torch(obs)
+
+    ep_start = time.time()
+
+    cumulative_reward = 0
+
+    # count up through actions
+    for t in count():
+
+      if self.log_level >= 3: print("Episode", i_episode, "action", t)
+
+      # select and perform an action
+      action = self.agent.select_action(obs, decay_num=i_episode, test=test)
+      (new_obs, reward, terminated, truncated, info) = self.env.step(action)
+      
+      # render the new environment
+      if self.render: self.env.render()
+
+      if terminated or truncated: done = True
+      else: done = False
+
+      # convert data to torch tensors on specified device
+      new_obs = self.to_torch(new_obs)
+      reward = self.to_torch(reward)
+      action = action.to(self.device).unsqueeze(0) # from Tensor([x]) -> Tensor([[x]])
+      truncated = self.to_torch(truncated, dtype=torch.bool)
+
+      # store if it was a terminal state (ie either terminated or truncated)
+      done = self.to_torch(done, dtype=torch.bool)
+
+      # perform one step of the optimisation on the policy network
+      if not test:
+        self.agent.update_step(obs, action, new_obs, reward, done, truncated)
+
+      obs = new_obs
+      cumulative_reward += reward.cpu()
+
+      # allow end of episode function to be set by the user
+      if self.episode_fcn is not None: self.episode_fcn()
+
+      # check if this episode is over and log if we aren't testing
+      if done:
+
+        ep_end = time.time()
+        time_per_step = (ep_end - ep_start) / float(t + 1)
+
+        if self.log_level >= 3:
+          print(f"Time for episode was {ep_end - ep_start:.3f}s"
+            f", time per action was {time_per_step * 1e3:.3f} ms")
+
+        # if we are testing, no data is logged
+        if test: break
+
+        # save training data
+        self.logger.scalar("reward", cumulative_reward[0])
+        self.logger.scalar("duration", t + 1)
+        self.logger.log_step()
+
+        cumulative_reward = 0
+
+        break
+
+  def train(self, i_start=None, num_episodes_abs=None, num_episodes_extra=None):
+    """
+    Run a training
+    """
+
+    if i_start is None:
+      i_start = int(self.logger.step)
+
+    if num_episodes_abs is not None:
+      self.params.num_episodes = num_episodes_abs
+
+    if num_episodes_extra is not None:
+      self.params.num_episodes = i_start + num_episodes_extra
+
+    if num_episodes_abs is not None and num_episodes_extra is not None:
+      if self.log_level > 0:
+        print(f"Trainer.train() warning: num_episodes={num_episodes_abs} (ignored) and num_episodes_extra={num_episodes_extra} (used) were both set. Training endpoing set as {self.params.num_episodes}")
+
+    if i_start >= self.params.num_episodes:
+      raise RuntimeError(f"Trainer.train() error: training episode start = {i_start} is greater or equal to the target number of episodes = {self.params.num_episodes}")
+
+    # if this is a fresh, new training
+    if i_start == 0:
+      # save starting network parameters and training settings
+      self.save()
+      self.save_hyperparameters()
+    else:
+      # save a record of the training restart
+      continue_label = f"Training is continuing from episode {i_start} with these hyperparameters\n"
+      hypername = f"hyperparameters_from_ep_{i_start}"
+      self.save_hyperparameters(filename=hypername, strheader=continue_label)
+
+    if self.log_level > 0:
+      print(f"\nBegin training, target is {self.params.num_episodes} episodes\n", flush=True)
+
+    # prepare the agent for training
+    self.agent.set_device(self.device)
+    self.agent.training_mode()
+    
+    # begin training episodes
+    for i_episode in range(i_start + 1, self.params.num_episodes + 1):
+
+      if self.log_level == 1 and (i_episode - 1) % self.log_rate_for_episodes == 0:
+        print(f"Begin training episode {i_episode}", flush=True)
+      elif self.log_level > 1:
+        print(f"Begin training episode {i_episode} at {datetime.now().strftime('%H:%M')}", flush=True)
+
+      self.run_episode(i_episode)
+
+      # not implemented with new logger
+      # # plot graphs to the screen
+      # if self.plot: self.logger.plot()
+
+      # check if we need to do any episode level updates (eg target network)
+      self.agent.update_episode(i_episode)
+
+      # save the network
+      if i_episode % self.params.save_freq == 0 and i_episode != 0:
+        self.save()
+
+      # test the target network
+      if i_episode % self.params.test_freq == 0 and i_episode != 0:
+        self.test() # this function should save test data as well
+
+    # the agent may require final updating at the end
+    self.agent.update_episode(i_episode, finished=True)
+
+    # save, log and plot now we are finished
+    if self.log_level > 0:
+      print("\nTraining complete, finished", i_episode, "episodes\n")
+
+    # wrap up
+    if self.render: self.env.render()
+
+    # not implemented with new logger
+    # if self.plot: self.logger.plot()
+
+  # need to define these functions for Trainer base class
+
+  def test(self):
+    """
+    Empty test function, should be overriden for each environment.
+
+    Outline:
+
+    self.env.start_test() # if env needs to do extra logging
+    self.agent.testing_mode() # if using pytorch, don't forget .eval()
+
+    for i_episode in range(num_trials):
+      self.run_episode(i_episode, test=True)
+
+    test_data = self.env.get_test_data()
+    
+    self.env.end_test() # disable any test specific behaviour
+    self.agent.training_mode() # disable any test time changes
+
+    test_data = self.process_test_data(test_data) # maybe post-process
+    self.save_test(test_data) # maybe save the results
+
+    # return the test data
+    return test_data
+    """
+    pass
+
+
+class LegacyTrainer:
 
   @dataclass
   class Parameters:
@@ -297,7 +729,7 @@ class Trainer:
     Class that trains agents in an environment
     """
 
-    self.params = Trainer.Parameters() # legacy setup
+    self.params = LegacyTrainer.Parameters()
     self.track = logger
 
     self.agent = agent

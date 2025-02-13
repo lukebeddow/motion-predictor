@@ -9,6 +9,9 @@ defaults:
 # below we override specific parameters of the parameters we redefined above
 # note we can add additional fields to these parameters here
 
+# important! give the name of this experiment
+exp_name: example
+
 dreamer:
   learning_rate: 1e-5
 

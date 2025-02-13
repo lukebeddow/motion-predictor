@@ -3,7 +3,6 @@ defaults:
   - override /model: ppo
   - override /env: gym_walker
   - override /trainer: base_trainer
-  # - override /wandb: wandb
 
 # this file is for luke's development work
 
@@ -11,6 +10,9 @@ defaults:
 # ---- #
 # below we override specific parameters of the parameters we redefined above
 # note we can add additional fields to these parameters here
+
+# important! give the name of this experiment
+exp_name: luke
 
 wandb:
   mode: offline
