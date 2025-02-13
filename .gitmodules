@@ -4,3 +4,6 @@
 [submodule "src/repos/extreme-parkour"]
 	path = src/repos/extreme-parkour
 	url = git@github.com:lukebeddow/extreme-parkour.git
+[submodule "src/repos/elements"]
+	path = src/repos/elements
+	url = git@github.com:lukebeddow/elements.git
