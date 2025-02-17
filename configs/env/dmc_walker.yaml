@@ -1,0 +1,3 @@
+_target_: env.dmc.DMC
+name: walker_walk
+seed: ${seed}

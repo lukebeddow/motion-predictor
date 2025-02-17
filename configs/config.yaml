@@ -2,11 +2,10 @@
 
 defaults:
   - _self_
-  - model: ppo
-  - env: gym_hopper
-  - trainer: base_trainer
+  - model: dreamer
+  - env: env.dmc_walker
   - hydra: default
-  - exp: default # should be last in defaults list
+  - exp: dreamer_demo # should be last in defaults list
 
 run_name: "run"
 savedir: ${run_name}

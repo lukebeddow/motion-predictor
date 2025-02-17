@@ -4,7 +4,6 @@ FROM ubuntu:22.04
 ENV DEBIAN_FRONTEND=noninteractive
 ENV PYENV_ROOT="/.pyenv"
 ENV PATH="$PYENV_ROOT/bin:$PYENV_ROOT/shims:$PATH"
-ENV PATH="/.venv/bin:$PATH"
 
 # Set the working directory
 WORKDIR /workspace
@@ -48,20 +47,23 @@ RUN curl https://pyenv.run | bash && \
 RUN pyenv install 3.11 && \
     pyenv global 3.11
 
-# Set up virtual environment
-RUN python -m venv /.venv && \
-    pip install --upgrade pip setuptools wheel
+## PACKAGE SETUP ##
 
-# Copy requirements.txt into the container
+## Default requirements (can change this)
 COPY requirements.txt requirements.txt
+# Set up main environment
+RUN python -m venv /envs/main && \
+    /envs/main/bin/pip install --upgrade pip setuptools wheel && \
+    /envs/main/bin/pip install -r requirements.txt && \
+    rm requirements.txt
 
-# Install Python dependencies
-RUN pip install -r requirements.txt
-
-# Setup entry point to activate virtual environment
-COPY entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
-ENTRYPOINT ["/entrypoint.sh"]
-
+## Dreamer requirements 
+# Copy requirements.txt into the container
+COPY src/repos/dreamerv3/requirements.txt dreamer_requirements.txt
+# Set up dreamer environment
+RUN python -m venv /envs/dreamer && \
+    /envs/dreamer/bin/pip install --upgrade pip setuptools wheel && \
+    /envs/dreamer/bin/pip install -r dreamer_requirements.txt && \
+    rm dreamer_requirements.txt
 
 CMD ["bash"]

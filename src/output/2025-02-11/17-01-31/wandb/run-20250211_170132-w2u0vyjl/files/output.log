@@ -1,0 +1,566 @@
+[2025-02-11 17:01:33,264][root][INFO] - {'model': {'name': 'ppo', 'algo': {'learning_rate_pi': 1e-05, 'learning_rate_vf': 0.0001, 'gamma': 0.99, 'steps_per_epoch': 4000, 'clip_ratio': 0.2, 'train_pi_iters': 80, 'train_vf_iters': 80, 'lam': 0.97, 'target_kl': 0.01, 'max_kl_ratio': 1.5, 'use_random_action_noise': True, 'random_action_noise_size': 0.2, 'optimiser': 'adam', 'use_kl_penalty': False, 'use_entropy_regularisation': False, 'kl_penalty_coefficient': 0.2, 'entropy_coefficient': 0.0001, 'adam_beta1': 0.9, 'adam_beta2': 0.999, 'grad_clamp_value': None, 'rngseed': 123}, 'trainer': {'num_episodes': 1000, 'test_freq': 200, 'save_freq': 200, 'use_curriculum': False, 'rngseed': 123, 'log_level': 1, 'plot': False, 'render': False}}, 'env': {'name': 'Walker2d-v5', 'seed': 123}, 'wandb': {'project': 'motion-predictor', 'job_type': 'train', 'name': 'name-me ${now:%Y_%m_%d_%H_%M_%S}', 'mode': 'online'}, 'device': 'cuda'}
+Trainer settings:
+ -> Run name: run_17-01
+ -> Group name: 2025-02-11
+ -> Given seed: 123
+ -> Training reproducible: False
+ -> Using device: cpu
+ -> Save enabled: True
+ -> Save path: models/2025-02-11/
+Saving file models/2025-02-11/run_17-01/Trainer_params_001.lz4 with pickle ... finished
+Saving file models/2025-02-11/run_17-01/Tracking_info.lz4 with pickle ... finished
+Saving file models/2025-02-11/run_17-01/Agent_PPO_001.lz4 with pickle ... finished
+Trainer hyperparameters:
+
+{'num_episodes': 1000
+ 'test_freq': 200
+ 'save_freq': 200
+ 'use_curriculum': False
+ 'rngseed': 123
+ 'training_reproducible': False
+ 'saving_enabled': True}
+
+Agent hyperparameters:
+
+{'learning_rate_pi': 1e-05
+ 'learning_rate_vf': 0.0001
+ 'gamma': 0.99
+ 'steps_per_epoch': 4000
+ 'clip_ratio': 0.2
+ 'train_pi_iters': 80
+ 'train_vf_iters': 80
+ 'lam': 0.97
+ 'target_kl': 0.01
+ 'max_kl_ratio': 1.5
+ 'use_random_action_noise': True
+ 'random_action_noise_size': 0.2
+ 'optimiser': 'adam'
+ 'use_kl_penalty': False
+ 'use_entropy_regularisation': False
+ 'kl_penalty_coefficient': 0.2
+ 'entropy_coefficient': 0.0001
+ 'adam_beta1': 0.9
+ 'adam_beta2': 0.999
+ 'grad_clamp_value': None
+ 'network_name': 'MLPActorCriticPG_128x128'}
+
+Env hyperparameters:
+
+{'act_dim': 6
+ 'obs_dim': 17
+ 'env_type': 'gym env'}
+
+
+Saving file models/2025-02-11/run_17-01/hyperparameters_001.lz4 with pickle ... finished
+
+Begin training, target is 1000 episodes
+
+Begin training episode 1
+Episode 10 training metrics:
+ -> duration = 18.000
+ -> reward = -9.025
+
+Begin training episode 11
+Episode 20 training metrics:
+ -> duration = 19.000
+ -> reward = 7.149
+
+Begin training episode 21
+Episode 30 training metrics:
+ -> duration = 22.000
+ -> reward = -7.223
+
+Begin training episode 31
+Episode 40 training metrics:
+ -> duration = 21.000
+ -> reward = -7.009
+
+Begin training episode 41
+Episode 50 training metrics:
+ -> duration = 25.000
+ -> reward = -4.411
+
+Begin training episode 51
+Episode 60 training metrics:
+ -> duration = 22.000
+ -> reward = -12.286
+
+Begin training episode 61
+Episode 70 training metrics:
+ -> duration = 21.000
+ -> reward = -1.373
+
+Begin training episode 71
+Episode 80 training metrics:
+ -> duration = 33.000
+ -> reward = 3.355
+
+Begin training episode 81
+Episode 90 training metrics:
+ -> duration = 20.000
+ -> reward = -6.447
+
+Begin training episode 91
+Episode 100 training metrics:
+ -> duration = 11.000
+ -> reward = -4.039
+
+Begin training episode 101
+Episode 110 training metrics:
+ -> duration = 20.000
+ -> reward = -4.696
+
+Begin training episode 111
+Episode 120 training metrics:
+ -> duration = 20.000
+ -> reward = -8.688
+
+Begin training episode 121
+Episode 130 training metrics:
+ -> duration = 25.000
+ -> reward = -7.945
+
+Begin training episode 131
+Episode 140 training metrics:
+ -> duration = 18.000
+ -> reward = -6.062
+
+Begin training episode 141
+Episode 150 training metrics:
+ -> duration = 25.000
+ -> reward = -1.981
+
+Begin training episode 151
+Episode 160 training metrics:
+ -> duration = 31.000
+ -> reward = 0.568
+
+Begin training episode 161
+Episode 170 training metrics:
+ -> duration = 11.000
+ -> reward = -4.200
+
+Begin training episode 171
+Episode 180 training metrics:
+ -> duration = 24.000
+ -> reward = -3.612
+
+Begin training episode 181
+Episode 190 training metrics:
+ -> duration = 16.000
+ -> reward = 3.284
+
+Begin training episode 191
+Episode 200 training metrics:
+ -> duration = 27.000
+ -> reward = 2.160
+
+Begin training episode 201
+Episode 210 training metrics:
+ -> duration = 33.000
+ -> reward = -2.438
+
+Begin training episode 211
+Episode 220 training metrics:
+ -> duration = 20.000
+ -> reward = -7.453
+
+Begin training episode 221
+Episode 230 training metrics:
+ -> duration = 27.000
+ -> reward = -6.841
+
+Begin training episode 231
+Episode 240 training metrics:
+ -> duration = 29.000
+ -> reward = -1.348
+
+Begin training episode 241
+Episode 250 training metrics:
+ -> duration = 13.000
+ -> reward = -5.801
+
+Begin training episode 251
+Episode 260 training metrics:
+ -> duration = 23.000
+ -> reward = 0.892
+
+Begin training episode 261
+Episode 270 training metrics:
+ -> duration = 19.000
+ -> reward = -7.336
+
+Begin training episode 271
+Episode 280 training metrics:
+ -> duration = 22.000
+ -> reward = -11.383
+
+Begin training episode 281
+Episode 290 training metrics:
+ -> duration = 29.000
+ -> reward = -1.557
+
+Begin training episode 291
+Episode 300 training metrics:
+ -> duration = 22.000
+ -> reward = -11.410
+
+Begin training episode 301
+Episode 310 training metrics:
+ -> duration = 23.000
+ -> reward = -5.753
+
+Begin training episode 311
+Episode 320 training metrics:
+ -> duration = 27.000
+ -> reward = -0.075
+
+Begin training episode 321
+Episode 330 training metrics:
+ -> duration = 22.000
+ -> reward = -0.571
+
+Begin training episode 331
+Episode 340 training metrics:
+ -> duration = 19.000
+ -> reward = 1.008
+
+Begin training episode 341
+Episode 350 training metrics:
+ -> duration = 31.000
+ -> reward = -2.032
+
+Begin training episode 351
+Episode 360 training metrics:
+ -> duration = 11.000
+ -> reward = -10.456
+
+Begin training episode 361
+Episode 370 training metrics:
+ -> duration = 24.000
+ -> reward = 2.790
+
+Begin training episode 371
+Episode 380 training metrics:
+ -> duration = 18.000
+ -> reward = -7.129
+
+Begin training episode 381
+Episode 390 training metrics:
+ -> duration = 27.000
+ -> reward = -0.401
+
+Begin training episode 391
+Episode 400 training metrics:
+ -> duration = 20.000
+ -> reward = -9.563
+
+Begin training episode 401
+Episode 410 training metrics:
+ -> duration = 12.000
+ -> reward = -5.467
+
+Begin training episode 411
+Episode 420 training metrics:
+ -> duration = 24.000
+ -> reward = -3.030
+
+Begin training episode 421
+Episode 430 training metrics:
+ -> duration = 18.000
+ -> reward = -7.638
+
+Begin training episode 431
+Episode 440 training metrics:
+ -> duration = 32.000
+ -> reward = -0.140
+
+Begin training episode 441
+Episode 450 training metrics:
+ -> duration = 19.000
+ -> reward = 7.709
+
+Begin training episode 451
+Episode 460 training metrics:
+ -> duration = 10.000
+ -> reward = -1.855
+
+Begin training episode 461
+Episode 470 training metrics:
+ -> duration = 20.000
+ -> reward = -7.615
+
+Begin training episode 471
+Episode 480 training metrics:
+ -> duration = 12.000
+ -> reward = -2.830
+
+Begin training episode 481
+Episode 490 training metrics:
+ -> duration = 32.000
+ -> reward = 4.837
+
+Begin training episode 491
+Episode 500 training metrics:
+ -> duration = 23.000
+ -> reward = -4.287
+
+Begin training episode 501
+Episode 510 training metrics:
+ -> duration = 26.000
+ -> reward = -5.816
+
+Begin training episode 511
+Episode 520 training metrics:
+ -> duration = 18.000
+ -> reward = -5.767
+
+Begin training episode 521
+Episode 530 training metrics:
+ -> duration = 21.000
+ -> reward = -6.165
+
+Begin training episode 531
+Episode 540 training metrics:
+ -> duration = 19.000
+ -> reward = -3.268
+
+Begin training episode 541
+Episode 550 training metrics:
+ -> duration = 19.000
+ -> reward = -6.873
+
+Begin training episode 551
+Episode 560 training metrics:
+ -> duration = 21.000
+ -> reward = -2.892
+
+Begin training episode 561
+Episode 570 training metrics:
+ -> duration = 16.000
+ -> reward = 2.774
+
+Begin training episode 571
+Episode 580 training metrics:
+ -> duration = 23.000
+ -> reward = -4.556
+
+Begin training episode 581
+Episode 590 training metrics:
+ -> duration = 25.000
+ -> reward = -5.227
+
+Begin training episode 591
+Episode 600 training metrics:
+ -> duration = 37.000
+ -> reward = 1.096
+
+Begin training episode 601
+Episode 610 training metrics:
+ -> duration = 23.000
+ -> reward = -3.908
+
+Begin training episode 611
+Episode 620 training metrics:
+ -> duration = 25.000
+ -> reward = -3.134
+
+Begin training episode 621
+Episode 630 training metrics:
+ -> duration = 20.000
+ -> reward = -9.621
+
+Begin training episode 631
+Episode 640 training metrics:
+ -> duration = 29.000
+ -> reward = -5.940
+
+Begin training episode 641
+Episode 650 training metrics:
+ -> duration = 15.000
+ -> reward = 3.870
+
+Begin training episode 651
+Episode 660 training metrics:
+ -> duration = 18.000
+ -> reward = -12.628
+
+Begin training episode 661
+Episode 670 training metrics:
+ -> duration = 16.000
+ -> reward = 2.866
+
+Begin training episode 671
+Episode 680 training metrics:
+ -> duration = 13.000
+ -> reward = -5.839
+
+Begin training episode 681
+Episode 690 training metrics:
+ -> duration = 31.000
+ -> reward = -0.057
+
+Begin training episode 691
+Episode 700 training metrics:
+ -> duration = 35.000
+ -> reward = 5.274
+
+Begin training episode 701
+Episode 710 training metrics:
+ -> duration = 23.000
+ -> reward = -6.570
+
+Begin training episode 711
+Episode 720 training metrics:
+ -> duration = 15.000
+ -> reward = -3.054
+
+Begin training episode 721
+Episode 730 training metrics:
+ -> duration = 25.000
+ -> reward = -4.940
+
+Begin training episode 731
+Episode 740 training metrics:
+ -> duration = 25.000
+ -> reward = -7.576
+
+Begin training episode 741
+Episode 750 training metrics:
+ -> duration = 22.000
+ -> reward = -9.305
+
+Begin training episode 751
+Episode 760 training metrics:
+ -> duration = 24.000
+ -> reward = -2.193
+
+Begin training episode 761
+Episode 770 training metrics:
+ -> duration = 26.000
+ -> reward = -4.180
+
+Begin training episode 771
+Episode 780 training metrics:
+ -> duration = 23.000
+ -> reward = -3.702
+
+Begin training episode 781
+Episode 790 training metrics:
+ -> duration = 23.000
+ -> reward = -3.858
+
+Begin training episode 791
+Episode 800 training metrics:
+ -> duration = 17.000
+ -> reward = 2.752
+
+Begin training episode 801
+Episode 810 training metrics:
+ -> duration = 19.000
+ -> reward = -10.564
+
+Begin training episode 811
+Episode 820 training metrics:
+ -> duration = 19.000
+ -> reward = -8.498
+
+Begin training episode 821
+Episode 830 training metrics:
+ -> duration = 22.000
+ -> reward = 0.625
+
+Begin training episode 831
+Episode 840 training metrics:
+ -> duration = 14.000
+ -> reward = 3.507
+
+Begin training episode 841
+Episode 850 training metrics:
+ -> duration = 33.000
+ -> reward = 4.318
+
+Begin training episode 851
+Episode 860 training metrics:
+ -> duration = 19.000
+ -> reward = -10.203
+
+Begin training episode 861
+Episode 870 training metrics:
+ -> duration = 33.000
+ -> reward = -2.184
+
+Begin training episode 871
+Episode 880 training metrics:
+ -> duration = 24.000
+ -> reward = 5.369
+
+Begin training episode 881
+Episode 890 training metrics:
+ -> duration = 28.000
+ -> reward = 0.990
+
+Begin training episode 891
+Episode 900 training metrics:
+ -> duration = 32.000
+ -> reward = -1.927
+
+Begin training episode 901
+Episode 910 training metrics:
+ -> duration = 25.000
+ -> reward = -2.589
+
+Begin training episode 911
+Episode 920 training metrics:
+ -> duration = 17.000
+ -> reward = -7.815
+
+Begin training episode 921
+Episode 930 training metrics:
+ -> duration = 29.000
+ -> reward = -6.124
+
+Begin training episode 931
+Episode 940 training metrics:
+ -> duration = 20.000
+ -> reward = -4.108
+
+Begin training episode 941
+Episode 950 training metrics:
+ -> duration = 17.000
+ -> reward = -2.677
+
+Begin training episode 951
+Episode 960 training metrics:
+ -> duration = 12.000
+ -> reward = -5.860
+
+Begin training episode 961
+Episode 970 training metrics:
+ -> duration = 19.000
+ -> reward = -8.299
+
+Begin training episode 971
+Episode 980 training metrics:
+ -> duration = 17.000
+ -> reward = 0.698
+
+Begin training episode 981
+Episode 990 training metrics:
+ -> duration = 13.000
+ -> reward = -0.726
+
+Begin training episode 991
+Episode 1000 training metrics:
+ -> duration = 14.000
+ -> reward = 1.651
+
+
+Training complete, finished 1000 episodes
+Traceback (most recent call last):
+  File "/workspace/src/launch_training.py", line 59, in main
+    print_time_taken()
+  File "/workspace/src/launch_training.py", line 26, in print_time_taken
+    time_taken = finishing_time - starting_time
+                                  ^^^^^^^^^^^^^
+NameError: name 'starting_time' is not defined

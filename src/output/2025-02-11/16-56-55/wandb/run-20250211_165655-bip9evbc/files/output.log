@@ -1,0 +1,18 @@
+[2025-02-11 16:56:56,439][root][INFO] - {'model': {'name': 'ppo', 'algo': {'learning_rate_pi': 1e-05, 'learning_rate_vf': 0.0001, 'gamma': 0.99, 'steps_per_epoch': 4000, 'clip_ratio': 0.2, 'train_pi_iters': 80, 'train_vf_iters': 80, 'lam': 0.97, 'target_kl': 0.01, 'max_kl_ratio': 1.5, 'use_random_action_noise': True, 'random_action_noise_size': 0.2, 'optimiser': 'adam', 'use_kl_penalty': False, 'use_entropy_regularisation': False, 'kl_penalty_coefficient': 0.2, 'entropy_coefficient': 0.0001, 'adam_beta1': 0.9, 'adam_beta2': 0.999, 'grad_clamp_value': None, 'rngseed': 123}, 'trainer': {'num_episodes': 1000, 'test_freq': 200, 'save_freq': 200, 'use_curriculum': False, 'rngseed': 123, 'log_level': 1, 'plot': True, 'render': True}}, 'env': {'name': 'Pendulum-v1', 'seed': 123}, 'wandb': {'project': 'motion-predictor', 'job_type': 'train', 'name': 'name-me ${now:%Y_%m_%d_%H_%M_%S}', 'mode': 'online'}, 'device': 'cuda'}
+Trainer settings:
+ -> Run name: run_16-56
+ -> Group name: 2025-02-11
+ -> Given seed: 123
+ -> Training reproducible: False
+ -> Using device: cpu
+ -> Save enabled: True
+ -> Save path: models/2025-02-11/
+Traceback (most recent call last):
+  File "/workspace/src/launch_training.py", line 58, in main
+    trainer.train()
+  File "/workspace/src/trainers/base_trainer.py", line 721, in train
+    self.save()
+  File "/workspace/src/trainers/base_trainer.py", line 416, in save
+    if not self.saved_trainer_params or force_train_params:
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'Trainer' object has no attribute 'saved_trainer_params'

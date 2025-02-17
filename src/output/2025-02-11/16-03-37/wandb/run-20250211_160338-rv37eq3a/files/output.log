@@ -1,0 +1,55 @@
+[2025-02-11 16:03:39,249][root][INFO] - {'model': {'name': 'ppo', 'algo': {'learning_rate_pi': 1e-05, 'learning_rate_vf': 0.0001, 'gamma': 0.99, 'steps_per_epoch': 4000, 'clip_ratio': 0.2, 'train_pi_iters': 80, 'train_vf_iters': 80, 'lam': 0.97, 'target_kl': 0.01, 'max_kl_ratio': 1.5, 'use_random_action_noise': True, 'random_action_noise_size': 0.2, 'optimiser': 'adam', 'use_kl_penalty': False, 'use_entropy_regularisation': False, 'kl_penalty_coefficient': 0.2, 'entropy_coefficient': 0.0001, 'adam_beta1': 0.9, 'adam_beta2': 0.999, 'grad_clamp_value': None, 'rngseed': 123}, 'trainer': {'num_episodes': 1000, 'test_freq': 200, 'save_freq': 200, 'use_curriculum': False, 'rngseed': 123, 'log_level': 1, 'plot': True, 'render': True}}, 'env': {'name': 'Pendulum-v1', 'seed': 123}, 'wandb': {'project': 'motion-predictor', 'job_type': 'train', 'name': 'name-me ${now:%Y_%m_%d_%H_%M_%S}', 'mode': 'online'}, 'device': 'cuda'}
+Saving file models/2025-02-11/run_16-03/Trainer_params_001.lz4 with pickle ... finished
+Saving file models/2025-02-11/run_16-03/Tracking_info.lz4 with pickle ... finished
+Saving file models/2025-02-11/run_16-03/Agent_PPO_001.lz4 with pickle ... finished
+Saving file models/2025-02-11/run_16-03/hyperparameters_001.lz4 with pickle ... finished
+
+Begin training, target is 1000 episodes
+
+Begin training episode 1
+/.venv/lib/python3.11/site-packages/gymnasium/utils/passive_env_checker.py:245: UserWarning: [33mWARN: The reward returned by `step()` must be a float, int, np.integer or np.floating, actual type: <class 'torch.Tensor'>[0m
+  logger.warn(
+/.venv/lib/python3.11/site-packages/gymnasium/envs/classic_control/pendulum.py:178: UserWarning: [33mWARN: You are calling render method without specifying any render mode. You can specify the render_mode at initialization, e.g. gym.make("Pendulum-v1", render_mode="rgb_array")[0m
+  gym.logger.warn(
+Begin training episode 11
+Begin training episode 21
+Begin training episode 31
+Traceback (most recent call last):
+  File "/workspace/src/launch_training.py", line 56, in main
+    trainer.train()
+  File "/workspace/src/trainers/ppo_trainer.py", line 750, in train
+    self.run_episode(i_episode)
+  File "/workspace/src/trainers/ppo_trainer.py", line 674, in run_episode
+    self.agent.update_step(obs, action, new_obs, reward, done, truncated)
+  File "/workspace/src/agents/policy_gradient.py", line 1004, in update_step
+    self.optimise_model()
+  File "/workspace/src/agents/policy_gradient.py", line 933, in optimise_model
+    loss_pi, pi_info = self.compute_loss_pi(data)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/src/agents/policy_gradient.py", line 891, in compute_loss_pi
+    pi, logp = self.mlp_ac.pi(obs, act)
+               ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/.venv/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/.venv/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/src/agents/policy_gradient.py", line 174, in forward
+    pi = self._distribution(obs)
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/src/agents/policy_gradient.py", line 213, in _distribution
+    return Normal(mu, std)
+           ^^^^^^^^^^^^^^^
+  File "/.venv/lib/python3.11/site-packages/torch/distributions/normal.py", line 59, in __init__
+    super().__init__(batch_shape, validate_args=validate_args)
+  File "/.venv/lib/python3.11/site-packages/torch/distributions/distribution.py", line 71, in __init__
+    raise ValueError(
+ValueError: Expected parameter loc (Tensor of shape (4000, 1)) of distribution Normal(loc: torch.Size([4000, 1]), scale: torch.Size([4000, 1])) to satisfy the constraint Real(), but found invalid values:
+tensor([[nan],
+        [nan],
+        [nan],
+        ...,
+        [nan],
+        [nan],
+        [nan]], grad_fn=<AddmmBackward0>)

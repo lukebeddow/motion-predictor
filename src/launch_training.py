@@ -5,15 +5,22 @@ from random import random
 import hydra
 import logging
 import wandb
+import sys
 
-from env.gym import GymHandler
-from trainers import base_trainer
-import agents.policy_gradient as pg
-from utils.logger import ProjectLogger
+repo_path = os.path.abspath("repos/dreamerv3/")
+if not os.path.exists(repo_path):
+  print(f"Error: Path does not exist: {repo_path}")
+
+sys.path.insert(0, repo_path)
+import dreamerv3
+import embodied
+
+from trainers import dreamer_trainer
+# from utils.logger import ProjectLogger
 
 import hydra 
-import elements
 from omegaconf import DictConfig, OmegaConf
+
 
 
 def print_time_taken(starting_time):
@@ -54,12 +61,14 @@ def create_savedir(cfg):
       i += 1
     os.makedirs(new_foldername.format(folderpath, i))
 
-    logging.warning(f"launch_training.create_savedir() warning: savedir requested '{folderpath}' already existed, changing savedir to '{new_foldername}'")
-    
+    logging.warning(
+        f"launch_training.create_savedir() warning: savedir requested '{folderpath}' already existed, changing savedir to '{new_foldername}'")
+
     # update the modified save location in the config
     cfg.savedir = new_foldername.format(folderpath, i)
 
-  logging.info(f"launch_training.create_savedir(): savedir for this run created at: '{cfg.savedir}'")
+  logging.info(
+      f"launch_training.create_savedir(): savedir for this run created at: '{cfg.savedir}'")
 
 @hydra.main(config_path="../configs", config_name="config", version_base=None)
 def main(cfg: DictConfig):
@@ -79,28 +88,43 @@ def main(cfg: DictConfig):
   logger = ProjectLogger(wandb_instance=wandb_instance, **cfg.logger)
 
   # create the environment from configuation settings
-  env = hydra.utils.instantiate(cfg.env)
+  env = hydra.utils.instantiate(cfg.env) 
+
+  # build the agent / model from configuration settings 
 
   # define the input and output sizes for the network
   cfg.model.network.obs_dim = env.obs_dim
   cfg.model.network.act_dim = env.act_dim
 
-  # create the network from configuration settings
-  network = hydra.utils.instantiate(cfg.model.network)
+  if cfg.model.name == 'ppo':
 
-  # create the agent from configuration settings
-  agent = hydra.utils.instantiate(cfg.model.agent)
-  agent.init(network)
+    #  create the network from configuration settings
+    network = hydra.utils.instantiate(cfg.model.network)
 
-  # create the trainer
-  trainer = hydra.utils.instantiate(cfg.trainer, agent=agent, env=env, logger=logger)
+    # create the agent from configuration settings
+    agent = hydra.utils.instantiate(cfg.model.agent)
+    agent.init(network)
 
-  # save the full configuration, now that everything is ready
-  OmegaConf.save(cfg, cfg.savedir + "/config.yaml")
+    # create the trainer
+    trainer = hydra.utils.instantiate(cfg.trainer, agent=agent, env=env, logger=logger)
 
-  # now run the training
-  trainer.train()
+    # save the full configuration, now that everything is ready
+    OmegaConf.save(cfg, cfg.savedir + "/config.yaml")
+
+    # now run the training
+    trainer.train()
+
+  elif cfg.model.name == 'dreamer': 
+
+    # setup agent 
+    agent = dreamer_trainer.DreamerTrainer(cfg, env)
+
+    # start training
+    agent.train(env)
+
   print_time_taken(starting_time)
+
+
 
 if __name__ == "__main__":
 

@@ -1,0 +1,29 @@
+2025-02-11 17:14:47,120 INFO    MainThread:1698 [wandb_setup.py:_flush():68] Current SDK version is 0.19.6
+2025-02-11 17:14:47,120 INFO    MainThread:1698 [wandb_setup.py:_flush():68] Configure stats pid to 1698
+2025-02-11 17:14:47,120 INFO    MainThread:1698 [wandb_setup.py:_flush():68] Loading settings from /root/.config/wandb/settings
+2025-02-11 17:14:47,120 INFO    MainThread:1698 [wandb_setup.py:_flush():68] Loading settings from /workspace/src/output/2025-02-11/17-14-46/wandb/settings
+2025-02-11 17:14:47,120 INFO    MainThread:1698 [wandb_setup.py:_flush():68] Loading settings from environment variables
+2025-02-11 17:14:47,120 INFO    MainThread:1698 [wandb_init.py:setup_run_log_directory():637] Logging user logs to /workspace/src/output/2025-02-11/17-14-46/wandb/run-20250211_171447-odo0y8qb/logs/debug.log
+2025-02-11 17:14:47,120 INFO    MainThread:1698 [wandb_init.py:setup_run_log_directory():638] Logging internal logs to /workspace/src/output/2025-02-11/17-14-46/wandb/run-20250211_171447-odo0y8qb/logs/debug-internal.log
+2025-02-11 17:14:47,121 INFO    MainThread:1698 [wandb_init.py:init():756] calling init triggers
+2025-02-11 17:14:47,121 INFO    MainThread:1698 [wandb_init.py:init():761] wandb.init called with sweep_config: {}
+config: {'model': {'name': 'ppo', 'algo': {'learning_rate_pi': 1e-05, 'learning_rate_vf': 0.0001, 'gamma': 0.99, 'steps_per_epoch': 4000, 'clip_ratio': 0.2, 'train_pi_iters': 80, 'train_vf_iters': 80, 'lam': 0.97, 'target_kl': 0.01, 'max_kl_ratio': 1.5, 'use_random_action_noise': True, 'random_action_noise_size': 0.2, 'optimiser': 'adam', 'use_kl_penalty': False, 'use_entropy_regularisation': False, 'kl_penalty_coefficient': 0.2, 'entropy_coefficient': 0.0001, 'adam_beta1': 0.9, 'adam_beta2': 0.999, 'grad_clamp_value': None, 'rngseed': 123}, 'trainer': {'num_episodes': 1000, 'test_freq': 200, 'save_freq': 200, 'use_curriculum': False, 'rngseed': 123, 'log_level': 1, 'plot': False, 'render': False}}, 'env': {'name': 'Walker2d-v5', 'seed': 123}, 'wandb': {'project': 'motion-predictor', 'job_type': 'train', 'name': 'name-me 2025_02_11_17_14_46', 'mode': 'online'}, 'device': 'cuda', '_wandb': {}}
+2025-02-11 17:14:47,121 INFO    MainThread:1698 [wandb_init.py:init():789] starting backend
+2025-02-11 17:14:47,331 INFO    MainThread:1698 [wandb_init.py:init():793] sending inform_init request
+2025-02-11 17:14:47,338 INFO    MainThread:1698 [backend.py:_multiprocessing_setup():97] multiprocessing start_methods=fork,spawn,forkserver, using: spawn
+2025-02-11 17:14:47,338 INFO    MainThread:1698 [wandb_init.py:init():808] backend started and connected
+2025-02-11 17:14:47,341 INFO    MainThread:1698 [wandb_init.py:init():901] updated telemetry
+2025-02-11 17:14:47,342 INFO    MainThread:1698 [wandb_init.py:init():936] communicating run to backend with 90.0 second timeout
+2025-02-11 17:14:47,691 INFO    MainThread:1698 [wandb_init.py:init():994] starting run threads in backend
+2025-02-11 17:14:47,871 INFO    MainThread:1698 [wandb_run.py:_console_start():2385] atexit reg
+2025-02-11 17:14:47,871 INFO    MainThread:1698 [wandb_run.py:_redirect():2235] redirect: wrap_raw
+2025-02-11 17:14:47,871 INFO    MainThread:1698 [wandb_run.py:_redirect():2300] Wrapping output streams.
+2025-02-11 17:14:47,871 INFO    MainThread:1698 [wandb_run.py:_redirect():2325] Redirects installed.
+2025-02-11 17:14:47,873 INFO    MainThread:1698 [wandb_init.py:init():1036] run started, returning control to user process
+2025-02-11 17:14:49,667 INFO    MainThread:1698 [wandb_run.py:_finish():2110] finishing run mavro/motion-predictor/odo0y8qb
+2025-02-11 17:14:49,667 INFO    MainThread:1698 [wandb_run.py:_atexit_cleanup():2350] got exitcode: 1
+2025-02-11 17:14:49,667 INFO    MainThread:1698 [wandb_run.py:_restore():2332] restore
+2025-02-11 17:14:49,667 INFO    MainThread:1698 [wandb_run.py:_restore():2338] restore done
+2025-02-11 17:14:51,398 INFO    MainThread:1698 [wandb_run.py:_footer_history_summary_info():3963] rendering history
+2025-02-11 17:14:51,398 INFO    MainThread:1698 [wandb_run.py:_footer_history_summary_info():3995] rendering summary
+2025-02-11 17:14:51,399 INFO    MainThread:1698 [wandb_run.py:_footer_sync_info():3924] logging synced files

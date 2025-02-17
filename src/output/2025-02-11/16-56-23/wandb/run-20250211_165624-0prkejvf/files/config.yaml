@@ -1,0 +1,72 @@
+_wandb:
+    value:
+        cli_version: 0.19.6
+        m: []
+        python_version: 3.11.11
+        t:
+            "1":
+                - 1
+                - 50
+                - 55
+            "2":
+                - 1
+                - 50
+                - 55
+            "3":
+                - 2
+                - 13
+                - 16
+                - 23
+                - 55
+            "4": 3.11.11
+            "5": 0.19.6
+            "8":
+                - 5
+            "12": 0.19.6
+            "13": linux-x86_64
+device:
+    value: cuda
+env:
+    value:
+        name: Pendulum-v1
+        seed: 123
+model:
+    value:
+        algo:
+            adam_beta1: 0.9
+            adam_beta2: 0.999
+            clip_ratio: 0.2
+            entropy_coefficient: 0.0001
+            gamma: 0.99
+            grad_clamp_value: null
+            kl_penalty_coefficient: 0.2
+            lam: 0.97
+            learning_rate_pi: 1e-05
+            learning_rate_vf: 0.0001
+            max_kl_ratio: 1.5
+            optimiser: adam
+            random_action_noise_size: 0.2
+            rngseed: 123
+            steps_per_epoch: 4000
+            target_kl: 0.01
+            train_pi_iters: 80
+            train_vf_iters: 80
+            use_entropy_regularisation: false
+            use_kl_penalty: false
+            use_random_action_noise: true
+        name: ppo
+        trainer:
+            log_level: 1
+            num_episodes: 1000
+            plot: true
+            render: true
+            rngseed: 123
+            save_freq: 200
+            test_freq: 200
+            use_curriculum: false
+wandb:
+    value:
+        job_type: train
+        mode: online
+        name: name-me 2025_02_11_16_56_23
+        project: motion-predictor

@@ -35,20 +35,20 @@ class TrackTraining:
     self.avg_time_taken = np.array([], dtype=self.numpy_float)
     # training data
     self.train_data = {
-      # automatically handled by this class
-      "episodes_done" : 0,
-      "episodes" : np.array([], dtype=np.int32),
-      # user should log extra metrics with TrackTraining.log_episode(dict_of_name_value_pairs)
+        # automatically handled by this class
+        "episodes_done" : 0,
+        "episodes" : np.array([], dtype=np.int32),
+        # user should log extra metrics with TrackTraining.log_episode(dict_of_name_value_pairs)
     }
     # testing data
     self.test_data = {
-      # automatically handled by this class
-      "tests_done" : 0,
-      "test_episodes" : np.array([], dtype=np.int32),
-      # user should log extra metrics with TrackTraining.log_test(dict_of_name_value_pairs)
+        # automatically handled by this class
+        "tests_done" : 0,
+        "test_episodes" : np.array([], dtype=np.int32),
+        # user should log extra metrics with TrackTraining.log_test(dict_of_name_value_pairs)
     }
     self.base_metrics = (
-      list(self.train_data.keys()) + list(self.test_data.keys()) + ["averages_done"]
+        list(self.train_data.keys()) + list(self.test_data.keys()) + ["averages_done"]
     )
     # for plotting
     self.fig = None
@@ -70,22 +70,26 @@ class TrackTraining:
       print("TrackTraining.add_metrics() error: metric names should be a list of length > 0")
 
     if type not in ["train", "test"]:
-      print(f"TrackTraining.add_metrics() error: type must be set to either 'train' or 'test', recieved '{type}'")
+      print(
+          f"TrackTraining.add_metrics() error: type must be set to either 'train' or 'test', recieved '{type}'")
 
     if dtypes is None: 
       dtypes = [self.numpy_float for _ in range(n)]
     elif len(dtypes) != n:
-      print(f"TrackTraining.add_metrics() error: number of metrics {n} != length of dtypes {len(dtypes)}. Either set dtypes=None, or add one for every metric (should be numpy types)")
-    
+      print(
+          f"TrackTraining.add_metrics() error: number of metrics {n} != length of dtypes {len(dtypes)}. Either set dtypes=None, or add one for every metric (should be numpy types)")
+
     if values is None: 
       values = [None for _ in range(n)]
     elif len(values) != n:
-      print(f"TrackTraining.add_metrics() error: number of metrics {n} != length of values {len(values)}. Either set values=None, or add one for every metric (can be None for some)")
-    
+      print(
+          f"TrackTraining.add_metrics() error: number of metrics {n} != length of values {len(values)}. Either set values=None, or add one for every metric (can be None for some)")
+
     for i in range(n):
       vals = [] if values[i] == None else values[i]
       if metric_names[i] in self.base_metrics:
-        print(f"TrackTraining.add_metrics() error: metric_name given '{metric_names[i]}' is not allowed, this name is reserved for the class internal usage")
+        print(
+            f"TrackTraining.add_metrics() error: metric_name given '{metric_names[i]}' is not allowed, this name is reserved for the class internal usage")
       if type == "train":
         self.train_data[metric_names[i]] = np.array(vals, dtype=dtypes[i])
       elif type == "test":
@@ -100,10 +104,14 @@ class TrackTraining:
       if key in self.train_data:
         self.train_data[key] = np.append(self.train_data[key], value)
       else:
-        print(f"TrackTraining.log_training_episode() warning: log value with name {key} not found in self.train_data. Not logged - metrics should be added first with TrackTraining.add_metrics()")
+        print(
+            f"TrackTraining.log_training_episode() warning: log value with name {key} not found in self.train_data. "
+            "Not logged - metrics should be added first with TrackTraining.add_metrics()"
+            )
 
     self.train_data["episodes_done"] += 1
-    self.train_data["episodes"] = np.append(self.train_data["episodes"], self.train_data["episodes_done"])
+    self.train_data["episodes"] = np.append(
+        self.train_data["episodes"], self.train_data["episodes_done"])
 
     # update average information
     new_data = self.calc_static_average()
@@ -111,7 +119,7 @@ class TrackTraining:
     if self.wandb_enabled and new_data:
       # temporary test of wanbd
       wandb.log({'reward':self.train_data['reward'][-1]})
-    
+
   def log_test(self, log_dict):
     """
     Log one test
@@ -121,10 +129,12 @@ class TrackTraining:
       if key in self.test_data:
         self.test_data[key] = np.append(self.test_data[key], value)
       else:
-        print(f"TrackTraining.log_test() warning: log value with name {key} not found in self.test_data. Not logged - metrics should be added first with TrackTraining.add_metrics()")
+        print(
+            f"TrackTraining.log_test() warning: log value with name {key} not found in self.test_data. Not logged - metrics should be added first with TrackTraining.add_metrics()")
 
     self.test_data["tests_done"] += 1
-    self.test_data["test_episodes"] = np.append(self.test_data["test_episodes"], self.train_data["episodes_done"])
+    self.test_data["test_episodes"] = np.append(
+        self.test_data["test_episodes"], self.train_data["episodes_done"])
 
   def calc_static_average(self):
     """
@@ -155,7 +165,8 @@ class TrackTraining:
         assert(len(unaveraged_points) // self.avg_num == num_new_averages)
 
         for i in range(num_new_averages):
-          new_average = np.mean(unaveraged_points[i * self.avg_num : (i + 1) * self.avg_num])
+          new_average = np.mean(
+              unaveraged_points[i * self.avg_num : (i + 1) * self.avg_num])
           self.train_data_avg[key] = np.append(self.train_data_avg[key], new_average)
 
       self.train_data_avg["averages_done"] += num_new_averages
@@ -182,86 +193,87 @@ class TrackTraining:
     # axs.set(ylabel=ylabel)
 
   def plot(self, plt_frequency_seconds=None):
-      """
-      Plot training results figures, pass a frequency to plot only if enough
-      time has elapsed
-      """
+    """
+    Plot training results figures, pass a frequency to plot only if enough
+    time has elapsed
+    """
 
-      if self.train_data["episodes_done"] < 5: return
+    if self.train_data["episodes_done"] < 5: return
 
-      if plt_frequency_seconds is None:
-        plt_frequency_seconds = self.plt_frequency_seconds
+    if plt_frequency_seconds is None:
+      plt_frequency_seconds = self.plt_frequency_seconds
 
-      # if not enough time has elapsed since the last plot
-      if (self.last_plot + plt_frequency_seconds > time.time()):
-        return
-      
-      if not "plt" in globals():
-        global plt, display
-        import matplotlib.pyplot as plt
-        from IPython import display
-        plt.ion()
-      
-      num = len(self.train_data) + len(self.test_data) - len(self.base_metrics) + 1
-
-      # calculate the number of rows and columns needed for plotting
-      rows = int(np.floor(np.sqrt(num)))
-      cols = int(np.ceil(num / rows))
-
-      if self.fig == None:
-        self.fig, self.axs = plt.subplots(cols, rows)
-        self.fig.set_size_inches(rows * 2, cols * 2)
-        self.fig.tight_layout()
-        display.display(self.fig, display_id="live_plot")
-
-        if len(self.axs.shape) == 1:
-          self.axs = self.axs.reshape((self.axs.shape[0], 1))
-
-      ind_row = 0
-      ind_col = 0
-
-      if self.plot_raw:
-        train_metrics = self.train_data.items()
-        train_xdata = np.array(self.train_data["episodes"])
-      else:
-        train_metrics = self.train_data_avg.items()
-        train_xdata = np.array(self.train_data_avg["episodes"])
-
-      for key, value in train_metrics:
-        
-        if key in self.base_metrics: continue
-
-        self.plot_matplotlib(train_xdata, value, key, key, self.axs[ind_col][ind_row])
-        
-        ind_row += 1
-        if ind_row >= rows:
-          ind_row = 0
-          ind_col += 1
-
-      for key, value in self.test_data.items():
-        
-        if key in self.base_metrics: continue
-
-        self.plot_matplotlib(np.array(self.test_data["test_episodes"]), value, key, key, self.axs[ind_col][ind_row])
-        
-        ind_row += 1
-        if ind_row >= rows:
-          ind_row = 0
-          ind_col += 1
-
-      self.fig.canvas.draw()
-      self.fig.canvas.flush_events()
-
-      # for juypter notebook
-      display.update_display(self.fig, display_id="live_plot")
-
-      # # for normal windows
-      # plt.pause(0.001)
-
-      # save that we plotted
-      self.last_plot = time.time()
-
+    # if not enough time has elapsed since the last plot
+    if (self.last_plot + plt_frequency_seconds > time.time()):
       return
+
+    if not "plt" in globals():
+      global plt, display
+      import matplotlib.pyplot as plt
+      from IPython import display
+      plt.ion()
+
+    num = len(self.train_data) + len(self.test_data) - len(self.base_metrics) + 1
+
+    # calculate the number of rows and columns needed for plotting
+    rows = int(np.floor(np.sqrt(num)))
+    cols = int(np.ceil(num / rows))
+
+    if self.fig == None:
+      self.fig, self.axs = plt.subplots(cols, rows)
+      self.fig.set_size_inches(rows * 2, cols * 2)
+      self.fig.tight_layout()
+      display.display(self.fig, display_id="live_plot")
+
+      if len(self.axs.shape) == 1:
+        self.axs = self.axs.reshape((self.axs.shape[0], 1))
+
+    ind_row = 0
+    ind_col = 0
+
+    if self.plot_raw:
+      train_metrics = self.train_data.items()
+      train_xdata = np.array(self.train_data["episodes"])
+    else:
+      train_metrics = self.train_data_avg.items()
+      train_xdata = np.array(self.train_data_avg["episodes"])
+
+    for key, value in train_metrics:
+
+      if key in self.base_metrics: continue
+
+      self.plot_matplotlib(train_xdata, value, key, key, self.axs[ind_col][ind_row])
+
+      ind_row += 1
+      if ind_row >= rows:
+        ind_row = 0
+        ind_col += 1
+
+    for key, value in self.test_data.items():
+
+      if key in self.base_metrics: continue
+
+      self.plot_matplotlib(
+          np.array(self.test_data["test_episodes"]), value, key, key, self.axs[ind_col][ind_row])
+
+      ind_row += 1
+      if ind_row >= rows:
+        ind_row = 0
+        ind_col += 1
+
+    self.fig.canvas.draw()
+    self.fig.canvas.flush_events()
+
+    # for juypter notebook
+    display.update_display(self.fig, display_id="live_plot")
+
+    # # for normal windows
+    # plt.pause(0.001)
+
+    # save that we plotted
+    self.last_plot = time.time()
+
+    return
 
   def print_train_metrics(self, avg_only=True):
     if not avg_only or self.train_data["episodes_done"] % self.avg_num == 0:
@@ -272,7 +284,8 @@ class TrackTraining:
       print()
 
   def print_test_metrics(self):
-    print(f"Test {self.test_data['tests_done']} metrics, at training episode {self.train_data['episodes_done']}:")
+    print(
+        f"Test {self.test_data['tests_done']} metrics, at training episode {self.train_data['episodes_done']}:")
     for key, value in self.test_data.items():
       if key not in self.base_metrics:
         print(f" -> {key} = {value[-1]:.3f}")
@@ -320,7 +333,7 @@ class BaseTrainer:
     self.plot = plot
     self.render = render
     self.log_rate_for_episodes = episode_log_rate
-    
+
     # set up saving
     self.setup_saving(run_name, group_name, savedir, enable_saving=save)
 
@@ -337,7 +350,8 @@ class BaseTrainer:
     if agent is not None and env is not None: self.seed(strict=strict_seed)
     else:
       if strict_seed or seed is not None:
-        raise RuntimeError("Trainer.__init__() error: agent and/or env is None, environment is not seeded by rngseed or strict_seed was set")
+        raise RuntimeError(
+            "Trainer.__init__() error: agent and/or env is None, environment is not seeded by rngseed or strict_seed was set")
       elif self.log_level >= 2:
         print("Trainer.__init__() warning: agent and/or env is None and environment is NOT seeded")
 
@@ -361,7 +375,7 @@ class BaseTrainer:
 
     if enable_saving is not None:
       self.enable_saving = enable_saving
-      
+
     # save information and create modelsaver to manage saving/loading
     self.group_name = group_name
     self.run_name = run_name
@@ -371,7 +385,7 @@ class BaseTrainer:
 
     if self.enable_saving:
       self.modelsaver = ModelSaver(self.savedir, log_level=self.log_level)
-  
+
   def to_torch(self, data, dtype=torch.float32):
     if torch.is_tensor(data):
       return data.unsqueeze(0)
@@ -396,7 +410,8 @@ class BaseTrainer:
     # if we want to ensure reproducitibilty at the cost of performance
     if strict is None: strict = self.training_reproducible
     if strict:
-      os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8" # increases GPU usage by 24MiB, see https://docs.nvidia.com/cuda/cublas/index.html#cublasApi_reproducibility and ctrl+f "CUBLAS_WORKSPACE_CONFIG"
+      # increases GPU usage by 24MiB, see https://docs.nvidia.com/cuda/cublas/index.html#cublasApi_reproducibility and ctrl+f "CUBLAS_WORKSPACE_CONFIG"
+      os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8"
       torch.backends.cudnn.benchmark = False
       torch.use_deterministic_algorithms(mode=True)
     else: self.training_reproducible = False
@@ -418,7 +433,7 @@ class BaseTrainer:
     # save the actual (saves a new file each time, numbering 1,2,3,...)
     self.modelsaver.save(self.agent.name, pyobj=self.agent.get_save_state(),
                          txtstr=extra_text_file_string, txtlabel=extra_text_file_name)
-    
+
     self.last_saved_agent_id = self.modelsaver.last_saved_id
 
   def get_save_id(self, episode):
@@ -442,9 +457,9 @@ class BaseTrainer:
     """
     param_dict = asdict(self.params)
     param_dict.update({
-      "rngseed" : self.rngseed,
-      "training_reproducible" : self.training_reproducible,
-      "saving_enabled" : self.enable_saving,
+        "rngseed" : self.rngseed,
+        "training_reproducible" : self.training_reproducible,
+        "saving_enabled" : self.enable_saving,
     })
     return param_dict
 
@@ -456,22 +471,26 @@ class BaseTrainer:
     """
 
     if agentonly and trackonly:
-      raise RuntimeError("Trainer.load() error: agentonly=True and trackonly=True, incompatible arguments")
+      raise RuntimeError(
+          "Trainer.load() error: agentonly=True and trackonly=True, incompatible arguments")
 
     # check if modelsaver is defined
     if not hasattr(self, "modelsaver"):
       if path_to_run_folder is not None:
-        print(f"load not given a modelsaver, making one from path_to_group: {path_to_run_folder}")
+        print(
+            f"load not given a modelsaver, making one from path_to_group: {path_to_run_folder}")
         self.modelsaver = ModelSaver(path_to_run_folder, log_level=self.log_level)
       elif group_name is not None:
         # try to find the group from this folder
         pathhere = os.path.dirname(os.path.abspath(__file__))
-        print(f"load not given modelsaver or path_to_group, assuming group is local at {pathhere + '/' + self.savedir}")
+        print(
+            f"load not given modelsaver or path_to_group, assuming group is local at {pathhere + '/' + self.savedir}")
         self.modelsaver = ModelSaver(pathhere + "/" + self.savedir + "/" + self.group_name,
                                      log_level=self.log_level)
       else:
-        raise RuntimeError("load not given a modelsaver and either of a) path_to_run_folder b) group_name (if group can be found locally)")
-    
+        raise RuntimeError(
+            "load not given a modelsaver and either of a) path_to_run_folder b) group_name (if group can be found locally)")
+
     # don't do this now, we change to save in self.savedir, no run folder
     # # enter the run folder (exit if already in one)
     # self.modelsaver.enter_folder(run_name)
@@ -487,7 +506,7 @@ class BaseTrainer:
     # get the name of the agent from the filename saved with
     name = self.modelsaver.get_recent_file(name="Agent")
     name = name.split("/")[-1]
-    
+
     # trim out the agent part
     name = name[:len("Agent") + len(self.modelsaver.file_ext())]
 
@@ -531,7 +550,7 @@ class BaseTrainer:
       # select and perform an action
       action = self.agent.select_action(obs, decay_num=i_episode, test=test)
       (new_obs, reward, terminated, truncated, info) = self.env.step(action)
-      
+
       # render the new environment
       if self.render: self.env.render()
 
@@ -565,7 +584,7 @@ class BaseTrainer:
 
         if self.log_level >= 3:
           print(f"Time for episode was {ep_end - ep_start:.3f}s"
-            f", time per action was {time_per_step * 1e3:.3f} ms")
+                f", time per action was {time_per_step * 1e3:.3f} ms")
 
         # if we are testing, no data is logged
         if test: break
@@ -595,10 +614,12 @@ class BaseTrainer:
 
     if num_episodes_abs is not None and num_episodes_extra is not None:
       if self.log_level > 0:
-        print(f"Trainer.train() warning: num_episodes={num_episodes_abs} (ignored) and num_episodes_extra={num_episodes_extra} (used) were both set. Training endpoing set as {self.params.num_episodes}")
+        print(
+            f"Trainer.train() warning: num_episodes={num_episodes_abs} (ignored) and num_episodes_extra={num_episodes_extra} (used) were both set. Training endpoing set as {self.params.num_episodes}")
 
     if i_start >= self.params.num_episodes:
-      raise RuntimeError(f"Trainer.train() error: training episode start = {i_start} is greater or equal to the target number of episodes = {self.params.num_episodes}")
+      raise RuntimeError(
+          f"Trainer.train() error: training episode start = {i_start} is greater or equal to the target number of episodes = {self.params.num_episodes}")
 
     # if this is a fresh, new training
     if i_start == 0:
@@ -607,19 +628,21 @@ class BaseTrainer:
 
 
     if self.log_level > 0:
-      print(f"\nBegin training, target is {self.params.num_episodes} episodes\n", flush=True)
+      print(
+          f"\nBegin training, target is {self.params.num_episodes} episodes\n", flush=True)
 
     # prepare the agent for training
     self.agent.set_device(self.device)
     self.agent.training_mode()
-    
+
     # begin training episodes
     for i_episode in range(i_start + 1, self.params.num_episodes + 1):
 
       if self.log_level == 1 and (i_episode - 1) % self.log_rate_for_episodes == 0:
         print(f"Begin training episode {i_episode}", flush=True)
       elif self.log_level > 1:
-        print(f"Begin training episode {i_episode} at {datetime.now().strftime('%H:%M')}", flush=True)
+        print(
+            f"Begin training episode {i_episode} at {datetime.now().strftime('%H:%M')}", flush=True)
 
       self.run_episode(i_episode)
 
@@ -666,7 +689,7 @@ class BaseTrainer:
       self.run_episode(i_episode, test=True)
 
     test_data = self.env.get_test_data()
-    
+
     self.env.end_test() # disable any test specific behaviour
     self.agent.training_mode() # disable any test time changes
 
@@ -725,7 +748,7 @@ class LegacyTrainer:
     # set up logging
     train_metrics = ["duration", "reward"]
     self.track.add_metrics(train_metrics, "train")
-    
+
     # set up saving
     self.train_param_savename = "Trainer_params"
     self.track_savename = "Tracking_info"
@@ -744,7 +767,8 @@ class LegacyTrainer:
     if agent is not None and env is not None: self.seed(strict=strict_seed)
     else:
       if strict_seed or seed is not None:
-        raise RuntimeError("Trainer.__init__() error: agent and/or env is None, environment is not seeded by rngseed or strict_seed was set")
+        raise RuntimeError(
+            "Trainer.__init__() error: agent and/or env is None, environment is not seeded by rngseed or strict_seed was set")
       elif self.log_level >= 2:
         print("Trainer.__init__() warning: agent and/or env is None and environment is NOT seeded")
 
@@ -768,7 +792,7 @@ class LegacyTrainer:
 
     if enable_saving is not None:
       self.enable_saving = enable_saving
-      
+
     # save information and create modelsaver to manage saving/loading
     self.group_name = group_name
     self.run_name = run_name
@@ -779,7 +803,7 @@ class LegacyTrainer:
     if self.enable_saving:
       self.modelsaver = ModelSaver(self.savedir + self.group_name,
                                    log_level=self.log_level)
-  
+
   def to_torch(self, data, dtype=torch.float32):
     if torch.is_tensor(data):
       return data.unsqueeze(0)
@@ -804,7 +828,8 @@ class LegacyTrainer:
     # if we want to ensure reproducitibilty at the cost of performance
     if strict is None: strict = self.training_reproducible
     if strict:
-      os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8" # increases GPU usage by 24MiB, see https://docs.nvidia.com/cuda/cublas/index.html#cublasApi_reproducibility and ctrl+f "CUBLAS_WORKSPACE_CONFIG"
+      # increases GPU usage by 24MiB, see https://docs.nvidia.com/cuda/cublas/index.html#cublasApi_reproducibility and ctrl+f "CUBLAS_WORKSPACE_CONFIG"
+      os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8"
       torch.backends.cudnn.benchmark = False
       torch.use_deterministic_algorithms(mode=True)
     else: self.training_reproducible = False
@@ -830,12 +855,12 @@ class LegacyTrainer:
     # have we saved key information about the trainer
     if not self.saved_trainer_params or force_train_params:
       trainer_save = {
-        "parameters" : self.params,
-        "rngseed" : self.rngseed,
-        "run_name" : self.run_name,
-        "group_name" : self.group_name,
-        "agent_name" : self.agent.name,
-        "env_data" : self.env.get_save_state(),
+          "parameters" : self.params,
+          "rngseed" : self.rngseed,
+          "run_name" : self.run_name,
+          "group_name" : self.group_name,
+          "agent_name" : self.agent.name,
+          "env_data" : self.env.get_save_state(),
       }
 
       # save trainer information (only once at the start of training)
@@ -854,7 +879,7 @@ class LegacyTrainer:
     self.modelsaver.save(self.agent.name, pyobj=self.agent.get_save_state(),
                          txtstr=txtfilestr, txtlabel=txtfilename,
                          force_suffix=save_id_agent)
-    
+
     self.last_saved_agent_id = self.modelsaver.last_saved_id
 
   def get_save_id(self, episode):
@@ -878,9 +903,9 @@ class LegacyTrainer:
     """
     param_dict = asdict(self.params)
     param_dict.update({
-      "rngseed" : self.rngseed,
-      "training_reproducible" : self.training_reproducible,
-      "saving_enabled" : self.enable_saving,
+        "rngseed" : self.rngseed,
+        "training_reproducible" : self.training_reproducible,
+        "saving_enabled" : self.enable_saving,
     })
     return param_dict
 
@@ -918,22 +943,26 @@ class LegacyTrainer:
     """
 
     if agentonly and trackonly:
-      raise RuntimeError("Trainer.load() error: agentonly=True and trackonly=True, incompatible arguments")
+      raise RuntimeError(
+          "Trainer.load() error: agentonly=True and trackonly=True, incompatible arguments")
 
     # check if modelsaver is defined
     if not hasattr(self, "modelsaver"):
       if path_to_run_folder is not None:
-        print(f"load not given a modelsaver, making one from path_to_group: {path_to_run_folder}")
+        print(
+            f"load not given a modelsaver, making one from path_to_group: {path_to_run_folder}")
         self.modelsaver = ModelSaver(path_to_run_folder, log_level=self.log_level)
       elif group_name is not None:
         # try to find the group from this folder
         pathhere = os.path.dirname(os.path.abspath(__file__))
-        print(f"load not given modelsaver or path_to_group, assuming group is local at {pathhere + '/' + self.savedir}")
+        print(
+            f"load not given modelsaver or path_to_group, assuming group is local at {pathhere + '/' + self.savedir}")
         self.modelsaver = ModelSaver(pathhere + "/" + self.savedir + "/" + self.group_name,
                                      log_level=self.log_level)
       else:
-        raise RuntimeError("load not given a modelsaver and either of a) path_to_run_folder b) group_name (if group can be found locally)")
-    
+        raise RuntimeError(
+            "load not given a modelsaver and either of a) path_to_run_folder b) group_name (if group can be found locally)")
+
     # enter the run folder (exit if already in one)
     self.modelsaver.enter_folder(run_name)
 
@@ -960,7 +989,7 @@ class LegacyTrainer:
         # get the name of the agent from the filename saved with
         name = self.modelsaver.get_recent_file(name="Agent")
         name = name.split("/")[-1]
-        
+
         # trim out the agent part
         name = name[:5 + len(self.modelsaver.file_ext())]
 
@@ -973,8 +1002,8 @@ class LegacyTrainer:
 
     if do_load_track:
       self.track = self.modelsaver.load(id=id, folderpath=path_to_run_folder, 
-                                      filenamestarts=self.track_savename,
-                                      suffix_numbering=self.trackinfo_numbering)
+                                        filenamestarts=self.track_savename,
+                                        suffix_numbering=self.trackinfo_numbering)
       if trackonly:
         if self.log_level > 0:
           print("Trainer.load() warning: TRACKONLY=TRUE, setting self.agent=None and self.env=None for safety")
@@ -985,7 +1014,7 @@ class LegacyTrainer:
 
       load_train = self.modelsaver.load(folderpath=path_to_run_folder,
                                         filenamestarts=self.train_param_savename)
-      
+
       # extract loaded data
       self.params = load_train["parameters"]
       self.run_name = load_train["run_name"]
@@ -1013,7 +1042,8 @@ class LegacyTrainer:
           self.curriculum_fcn(10) # apply settings based on best success rate
         else:
           print("CURRICULUM WARNING: self.curriculum_fcn not set in dict")
-          self.curriculum_change(self.curriculum_dict["stage"]) # apply initial stage settings
+          # apply initial stage settings
+          self.curriculum_change(self.curriculum_dict["stage"])
 
       # run the curriculum function to update to the current curriculum
       if self.params.use_curriculum:
@@ -1060,7 +1090,7 @@ class LegacyTrainer:
       # select and perform an action
       action = self.agent.select_action(obs, decay_num=i_episode, test=test)
       (new_obs, reward, terminated, truncated, info) = self.env.step(action)
-      
+
       # render the new environment
       if self.render: self.env.render()
 
@@ -1094,15 +1124,15 @@ class LegacyTrainer:
 
         if self.log_level >= 3:
           print(f"Time for episode was {ep_end - ep_start:.3f}s"
-            f", time per action was {time_per_step * 1e3:.3f} ms")
+                f", time per action was {time_per_step * 1e3:.3f} ms")
 
         # if we are testing, no data is logged
         if test: break
 
         # save training data
         self.track.log_training_episode({
-          "duration" : t + 1,
-          "reward" : cumulative_reward,
+            "duration" : t + 1,
+            "reward" : cumulative_reward,
         })
 
         cumulative_reward = 0
@@ -1125,10 +1155,12 @@ class LegacyTrainer:
 
     if num_episodes_abs is not None and num_episodes_extra is not None:
       if self.log_level > 0:
-        print(f"Trainer.train() warning: num_episodes={num_episodes_abs} (ignored) and num_episodes_extra={num_episodes_extra} (used) were both set. Training endpoing set as {self.params.num_episodes}")
+        print(
+            f"Trainer.train() warning: num_episodes={num_episodes_abs} (ignored) and num_episodes_extra={num_episodes_extra} (used) were both set. Training endpoing set as {self.params.num_episodes}")
 
     if i_start >= self.params.num_episodes:
-      raise RuntimeError(f"Trainer.train() error: training episode start = {i_start} is greater or equal to the target number of episodes = {self.params.num_episodes}")
+      raise RuntimeError(
+          f"Trainer.train() error: training episode start = {i_start} is greater or equal to the target number of episodes = {self.params.num_episodes}")
 
     # if this is a fresh, new training
     if i_start == 0:
@@ -1142,24 +1174,27 @@ class LegacyTrainer:
       self.save_hyperparameters(filename=hypername, strheader=continue_label)
 
     if self.log_level > 0:
-      print(f"\nBegin training, target is {self.params.num_episodes} episodes\n", flush=True)
+      print(
+          f"\nBegin training, target is {self.params.num_episodes} episodes\n", flush=True)
 
     # prepare the agent for training
     self.agent.set_device(self.device)
     self.agent.training_mode()
-    
+
     # begin training episodes
     for i_episode in range(i_start + 1, self.params.num_episodes + 1):
 
       if self.log_level == 1 and (i_episode - 1) % self.log_rate_for_episodes == 0:
         print(f"Begin training episode {i_episode}", flush=True)
       elif self.log_level > 1:
-        print(f"Begin training episode {i_episode} at {datetime.now().strftime('%H:%M')}", flush=True)
+        print(
+            f"Begin training episode {i_episode} at {datetime.now().strftime('%H:%M')}", flush=True)
 
       self.run_episode(i_episode)
 
       # plot graphs to the screen
-      if self.log_level > 0: self.track.print_train_metrics(avg_only=(self.log_level == 1))
+      if self.log_level > 0: self.track.print_train_metrics(
+          avg_only=(self.log_level == 1))
       if self.plot: self.track.plot()
 
       # check if we need to do any episode level updates (eg target network)
@@ -1199,7 +1234,7 @@ class LegacyTrainer:
       self.run_episode(i_episode, test=True)
 
     test_data = self.env.get_test_data()
-    
+
     self.env.end_test() # disable any test specific behaviour
     self.agent.training_mode() # disable any test time changes
 

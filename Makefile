@@ -3,8 +3,13 @@ IMAGE_NAME = motion-predictor
 CONTAINER_NAME = motion-predictor
 WORKDIR = $(PWD)/src
 CONFDIR = $(PWD)/configs
+ENV_FLAG = main
+ENVPATH = /envs/$(ENV_FLAG)
+
 PORT = 8888
 GPU_FLAG = --gpus device=0
+
+
 # Default target
 .PHONY: help
 help:
@@ -29,12 +34,14 @@ run:
 # Open an interactive shell in the container
 .PHONY: shell
 shell:
-	docker run -it --rm $(GPU_FLAG) -v $(WORKDIR):/workspace/src/ -v $(CONFDIR):/workspace/configs $(IMAGE_NAME) bash
+	docker run -it --rm $(GPU_FLAG) -v $(WORKDIR):/workspace/src/ -v $(CONFDIR):/workspace/configs $(IMAGE_NAME) \
+	bash -c "source $(ENVPATH)/bin/activate && exec bash"
 
 # Run Jupyter Notebook with GPU support 
 .PHONY: jupyter
 jupyter:
-	docker run --rm $(GPU_FLAG) -p $(PORT):8888 -v $(WORKDIR):/workspace $(IMAGE_NAME) jupyter notebook --ip=0.0.0.0 --port=8888 --no-browser --allow-root --NotebookApp.token=''
+	docker run --rm $(GPU_FLAG) -p $(PORT):8888 -v $(WORKDIR):/workspace $(IMAGE_NAME) \
+	bash -c "source $(ENVPATH)/bin/activate && jupyter notebook --ip=0.0.0.0 --port=8888 --no-browser --allow-root --NotebookApp.token=''  --NotebookApp.password='' "
 
 # Stop the running container (if detached mode is used in future)
 .PHONY: stop
