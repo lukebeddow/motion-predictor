@@ -1,0 +1,16 @@
+# @package _global_
+defaults:
+  - override /trainer: roa_trainer
+
+# this file is development of running the extreme-parkour code
+
+# above we override parameters ('# @package _global_' needs to be the first line)
+# ---- #
+# below we override specific parameters of the parameters we redefined above
+# note we can add additional fields to these parameters here
+
+# important! give the name of this experiment
+exp_name: parkour_dev
+
+wandb:
+  mode: online

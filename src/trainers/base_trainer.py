@@ -448,7 +448,6 @@ class BaseTrainer:
     })
     return param_dict
 
-
   def load(self, run_name, id=None, group_name=None, path_to_run_folder=None, 
            agentonly=False, trackonly=False):
     """

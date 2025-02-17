@@ -6,9 +6,10 @@ import hydra
 import logging
 import wandb
 
-from env.gym import GymHandler
-from trainers import base_trainer
-import agents.policy_gradient as pg
+import isaacgym
+# from env.gym import GymHandler
+# from trainers import base_trainer
+# import agents.policy_gradient as pg
 from utils.logger import ProjectLogger
 
 import hydra 
@@ -61,19 +62,62 @@ def create_savedir(cfg):
 
   logging.info(f"launch_training.create_savedir(): savedir for this run created at: '{cfg.savedir}'")
 
+def parkour(cfg, wandb_instance):
+  """
+  Debugging and developing integrating extreme-parkour into the repo. This function
+  finishes with 'exit()' to kill the python process. The aim of this function is to
+  test code without making main() dirty.
+  """
+
+  starting_time = datetime.now()
+
+  from env.rsl_legged.rsl_legged import RSLEnv
+  from trainers.roa_trainer import ROATrainer
+
+  # create a logging object for during the training
+  logger = ProjectLogger(wandb_instance=wandb_instance, **cfg.logger)
+
+  # create the environment from configuation settings
+  env = RSLEnv()
+
+  # create trainer which wraps their on-policy runner
+  trainer = ROATrainer(env=env, logger=logger, train_config=env.train_cfg_dict,
+                       **cfg.trainer)
+  # trainer = hydra.utils.instantiate(cfg.trainer, env=env, logger=logger,
+  #                                   train_config=env.rsl_config)
+
+  # perform the actual training
+  trainer.train()
+
+  print_time_taken(starting_time)
+  exit()
+
 @hydra.main(config_path="../configs", config_name="config", version_base=None)
 def main(cfg: DictConfig):
 
+  # ----- initial setup ----- #
+
   starting_time = datetime.now()
   cfg_container = OmegaConf.to_container(cfg, resolve=True, throw_on_missing=False)
-
-  # with wandb.init(config=cfg_container, **cfg_container['wandb']):
 
   # initialise weights and biases
   wandb_instance = wandb.init(config=cfg_container, **cfg_container['wandb'])
 
   logging.info(cfg) # echo config
   create_savedir(cfg) # create the save location for this run
+
+  import modelsaver
+  ms = modelsaver.ModelSaver("run")
+  ms.save("test.txt", txtstr="test file", txtonly=True)
+  print("Current directory is:", os.getcwd())
+
+  exit()
+
+  # ----- check for special cases ----- #
+
+  if cfg.exp_name == "parkour_dev": parkour(cfg, wandb_instance)
+
+  # ----- pre-training setup ----- #
 
   # create a logging object for during the training
   logger = ProjectLogger(wandb_instance=wandb_instance, **cfg.logger)
@@ -98,7 +142,8 @@ def main(cfg: DictConfig):
   # save the full configuration, now that everything is ready
   OmegaConf.save(cfg, cfg.savedir + "/config.yaml")
 
-  # now run the training
+  # ----- execute the training ----- #
+
   trainer.train()
   print_time_taken(starting_time)
 

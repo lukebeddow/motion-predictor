@@ -1,0 +1,10 @@
+num_episodes: 50000
+init_at_random_ep_len: True
+
+save: True
+savedir: ${savedir}
+device: "cuda"
+log_level: 1
+group_name: ""
+run_name: ${run_name}
+seed: ${seed}

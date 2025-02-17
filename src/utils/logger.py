@@ -117,6 +117,9 @@ class ProjectLogger(Logger):
     self.log_when = when.Every(log_rate)
     step = counter.Counter()
     self.episodes_done = int(step)
+    self.log_to_wandb = log_to_wandb
+    self.log_to_JSON = log_to_JSON
+    self.log_to_terminaml = log_to_terminal
 
     outputs = []
 
@@ -137,11 +140,14 @@ class ProjectLogger(Logger):
 
     super().__init__(step, outputs)
 
-  def log_step(self):
+  def log_step(self, print_string=None):
     """
-    Triggers a write action at the specified log rate, and increments the count of episodes done
+    Triggers a write action at the specified log rate, and increments the count
+    of episodes done. Optionally print a string as well.
     """
-    if self.log_when(self.episodes_done): self.write()
+    if self.log_when(self.episodes_done): 
+      self.write()
+      print(print_string)
     self.step.increment()
     self.episodes_done = int(self.step)
 

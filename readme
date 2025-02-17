@@ -1,0 +1,29 @@
+# Motion Predictor
+
+This module aims to predict the future motion of robots, taking as input a past history of joint states.
+
+### Setup
+
+To build from the docker image, run in the root of the directory:
+
+```make build```
+
+Once it has built, you can start an interactive shell session with:
+
+```make shell```
+
+To run a training in the interative shell:
+
+```
+python src/launch_training
+```
+
+To add logic for running your own custom experiment:
+1. Choose a name for your experiment: `<your_experiment_name>`
+2. Create a new config file at `configs/exp/<your_experiment_name>.yaml`. Define settings to override and change compared to the defaults. Create your own custom settings as well. Make sure you define `exp_name: <your_exp_name>`.
+3. Edit in `src/launch_training.py` the `main()` function with an additional `if...elif...` block based on `<your_experiment_name>`, so `elif cfg.exp_name == "<your_exp_name>": ...`. Here add the logic to run your experiment.
+4. Run your experiment with: `python src/launch_training.py exp=<your_exp_name>'
+
+Important! To use weights and biases with this repository, create a new file in the root of the directory called `wandb_api_key` containing:
+
+```WANDB_API_KEY=6f91b3f....```
